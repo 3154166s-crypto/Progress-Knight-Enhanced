@@ -1180,22 +1180,30 @@ function makeTownBuilding(name, id, baseCost, growthFactor, income) {
 var o_townBuildingsContainer = {
     // Basic  — cost ladder: 1M → 5M → 15M → 25M → 75M
     //          growth 1.10 across the board so buying ~100 units is always meaningful
-    o_woodenHut:      makeTownBuilding("Wooden Hut",    "woodenHut",      1e6,   1.10,  500),
-    o_farm:           makeTownBuilding("Farm",           "farm",           5e6,   1.10,  2000),
-    o_grainShed:      makeTownBuilding("Grain Shed",     "grainShed",      1.5e7, 1.10,  0),
-    o_lumberMill:     makeTownBuilding("Lumber Mill",    "lumberMill",     2.5e7, 1.10,  5000),
-    o_market:         makeTownBuilding("Market",         "market",         7.5e7, 1.10,  0),
-    // Military & Trade — 300M → 750M → 1.5B
-    o_barracks:       makeTownBuilding("Barracks",       "barracks",       3e8,   1.11,  12000),
-    o_tradingPost:    makeTownBuilding("Trading Post",   "tradingPost",    1.5e9, 1.11,  30000),
-    o_blacksmithShop: makeTownBuilding("Smithy",         "blacksmithShop", 7.5e8, 1.11,  18000),
-    // Arcane — 8B → 60B → 500B
-    o_magicTower:     makeTownBuilding("Magic Tower",    "magicTower",     8e9,   1.12,  80000),
-    o_alchemyLab:     makeTownBuilding("Alchemy Lab",    "alchemyLab",     6e10,  1.12,  250000),
-    o_arcaneLibrary:  makeTownBuilding("Arcane Library", "arcaneLibrary",  5e11,  1.12,  0),
-    // Grand — 5T → 50T
-    o_cathedral:      makeTownBuilding("Cathedral",      "cathedral",      5e12,  1.13,  1000000),
-    o_castle:         makeTownBuilding("Castle",         "castle",         5e13,  1.15,  5000000),
+o_woodenHut:      makeTownBuilding("Wooden Hut", "woodenHut", 2, 1.15, 50),
+o_farm:           makeTownBuilding("Farm", "farm", 20, 1.15, 150),
+
+o_well:           makeTownBuilding("Well", "well", 50, 1.15, 75),
+o_bakery:         makeTownBuilding("Bakery", "bakery", 100, 1.16, 250),
+o_grainShed:      makeTownBuilding("Grain Shed", "grainShed", 200, 1.16, 0),
+o_lumberMill:     makeTownBuilding("Lumber Mill", "lumberMill", 500, 1.16, 300),
+
+o_stable:         makeTownBuilding("Stable", "stable", 1000, 1.17, 600),
+o_tavern:         makeTownBuilding("Tavern", "tavern", 2500, 1.17, 1200),
+o_market:         makeTownBuilding("Market", "market", 5000, 1.18, 0),
+
+o_watchtower:     makeTownBuilding("Watchtower", "watchtower", 10000, 1.18, 2500),
+o_barracks:       makeTownBuilding("Barracks", "barracks", 25000, 1.18, 5000),
+
+o_blacksmithShop: makeTownBuilding("Smithy", "blacksmithShop", 50000, 1.19, 8000),
+o_tradingPost:    makeTownBuilding("Trading Post", "tradingPost", 100000, 1.19, 15000),
+
+o_magicTower:     makeTownBuilding("Magic Tower", "magicTower", 500000, 1.20, 50000),
+o_alchemyLab:     makeTownBuilding("Alchemy Lab", "alchemyLab", 2000000, 1.20, 150000),
+o_arcaneLibrary:  makeTownBuilding("Arcane Library", "arcaneLibrary", 10000000, 1.21, 0),
+
+o_cathedral:      makeTownBuilding("Cathedral", "cathedral", 50000000, 1.22, 500000),
+o_castle:         makeTownBuilding("Castle", "castle", 500000000, 1.25, 2000000),         "castle",         5e13,  1.15,  5000000),
 };
 
 // Grain Shed boosts farms — 8% per unit (was 6%)
