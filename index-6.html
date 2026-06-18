@@ -1,0 +1,3014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.25, maximum-scale=5.0, viewport-fit=cover">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <title>Progress Knight - Enhanced</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; font-size: 12px; }
+        body { background-color: rgb(243, 243, 243); padding: 4px; padding-top: max(4px, env(safe-area-inset-top)); }
+
+        /* Layout */
+        #outerWrap { display: flex; gap: 6px; align-items: flex-start; width: 100%; }
+        #sidebar { width: 175px; flex-shrink: 0; }
+        #mainContent { flex: 1; min-width: 0; overflow-x: auto; }
+
+        /* Portrait/mobile layout */
+        @media (max-width: 480px) {
+            html, body { font-size: 13px; }
+            #outerWrap { flex-direction: column; gap: 4px; }
+            #sidebar { width: 100%; }
+            #mainContent { width: 100%; overflow-x: auto; }
+            .progress-bar { width: 100% !important; min-width: 120px; }
+            .item-button { width: 100% !important; }
+            #navBar { justify-content: flex-start; }
+            .w3-bar-item { padding: 6px 10px !important; font-size: 12px !important; }
+            #speedButtons { flex-wrap: wrap; }
+            td, th { font-size: 11px; padding: 3px 4px !important; }
+            #quickTaskDisplay .progress-bar { width: 100% !important; }
+        }
+
+        /* Nav tab buttons */
+        #navBar { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px; }
+        .w3-bar-item { width: auto !important; height: auto !important; display: inline-block !important;
+                       padding: 5px 8px !important; font-size: 11px !important; line-height: 1.2 !important; }
+
+        /* Tab button gradients */
+        .tabButton {
+            background: linear-gradient(180deg, #4a4a5a 0%, #2e2e3e 50%, #252535 100%) !important;
+            color: #c8c8d8 !important;
+            border: 1px solid #555566 !important;
+            border-bottom: 1px solid #222230 !important;
+            border-radius: 4px 4px 0 0 !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.4) !important;
+            transition: background 0.15s, color 0.15s !important;
+            position: relative;
+        }
+        .tabButton:hover {
+            background: linear-gradient(180deg, #5a5a7a 0%, #3e3e58 50%, #333348 100%) !important;
+            color: #e8e8ff !important;
+        }
+        .tabButton.w3-blue-gray {
+            background: linear-gradient(180deg, #c8a84a 0%, #a07828 40%, #8a6418 60%, #c09838 100%) !important;
+            color: #fff8e0 !important;
+            border-color: #7a5010 !important;
+            border-bottom-color: #5a3a08 !important;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(255,200,80,0.4) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,200,0.25), 0 0 6px rgba(200,160,50,0.3) !important;
+        }
+
+        /* Table */
+        td, th { vertical-align: middle !important; padding: 3px 5px !important; font-size: 11px; }
+        .current { background-color: orange !important; }
+        .progress-text { position: absolute; top: 0; bottom: 0; padding: 3px 5px; color: white; font-size: 10px; white-space: nowrap; overflow: hidden; }
+        .progress-bar { position: relative; background-color: rgb(12, 101, 173); cursor: pointer; width: 130px; }
+        .progress-fill { height: 22px; background-color: rgb(46, 148, 231); }
+        .hidden { display: none !important; }
+        .hiddenTask { display: none !important; }
+        .button { border: 1px solid black !important; }
+        .item-button { background-color: white; text-align: center; width: 130px; height: auto;
+                       min-height: 28px; padding: 4px 5px; font-size: 11px; }
+        .item-button:hover { cursor: pointer; background-color: rgb(192, 192, 192); }
+        button:focus { outline: none; }
+        .scroll { overflow-y: auto; }
+
+        /* Tooltip */
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltipText { visibility: hidden; width: 180px; background-color: #111; color: #fff;
+            text-align: left; border: 2px solid rgb(92,92,247); border-radius: 5px; padding: 8px;
+            position: absolute; z-index: 200; top: -5px; left: 105%; opacity: 0;
+            transition: opacity 0.3s; font-size: 11px; pointer-events: none; }
+        .tooltip:hover .tooltipText { visibility: visible; opacity: 0.95; }
+        .tooltip .tooltipText.show { visibility: visible; opacity: 0.95; }
+
+        /* Town building buttons */
+        .town-btn { display: inline-block; background: #222; color: white; border: 1px solid #555;
+                    border-radius: 6px; padding: 6px 8px; margin: 3px; font-size: 11px;
+                    cursor: pointer; position: relative; text-align: center; min-width: 90px; }
+        .town-btn:hover { background: #444; }
+        .town-btn .w3-badge { margin-left: 6px; }
+
+        /* Sidebar */
+        .sidebar-element { margin-bottom: 4px; }
+        .inline { display: inline-block; }
+        .panel { background-color: white; }
+        .small-margin { margin-bottom: 1px; }
+        h1, h2 { font-size: 16px; margin: 4px 0; }
+        h4 { font-size: 13px; margin: 4px 0; }
+        h5 { font-size: 12px; margin: 4px 0; }
+
+        /* Speed buttons */
+        #speedButtons { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 4px; }
+        .speed-btn { border: 1px solid #888 !important; padding: 3px 6px; font-size: 11px;
+                     cursor: pointer; border-radius: 3px; width: auto !important;
+                     height: auto !important; display: inline-block !important; }
+        .speed-btn.active { background-color: rgb(46,148,231) !important; color: white !important;
+                            border-color: rgb(12,101,173) !important; }
+
+        /* Title badge */
+        @keyframes pkFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        #titleBadge {
+            display: block; text-align: left; line-height: 1.15;
+            padding: 2px 0 4px; margin-bottom: 2px;
+            animation: pkFloat 3.5s ease-in-out infinite;
+        }
+        #titleBadge .pk-progress, #titleBadge .pk-knight {
+            font-family: Georgia, 'Times New Roman', serif; font-weight: 700;
+            font-size: 15px; letter-spacing: 0.5px;
+        }
+        #titleBadge .pk-progress {
+            background: linear-gradient(180deg, #e8e8e8 0%, #b0b0b0 45%, #888 55%, #ccc 70%, #777 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+        }
+        #titleBadge .pk-knight {
+            background: linear-gradient(180deg, #f6dd8c 0%, #d8a534 45%, #b9821c 55%, #f0c869 70%, #9c6e14 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+        }
+        #titleBadge .pk-enhanced {
+            display: flex; align-items: center; justify-content: flex-start;
+            font-family: Georgia, 'Times New Roman', serif; font-weight: 700;
+            font-size: 9px; letter-spacing: 2px; margin-top: 1px;
+            color: #d4aaff;
+            text-shadow:
+                0 0 4px #c084fc,
+                0 0 8px #a855f7,
+                0 0 14px #9333ea,
+                0 0 20px rgba(168,85,247,0.6);
+            gap: 5px;
+        }
+        #titleBadge .pk-enhanced::before,
+        #titleBadge .pk-enhanced::after {
+            content: '';
+            display: inline-block;
+            height: 1px;
+            width: 10px;
+            background: linear-gradient(90deg, transparent, #b67fff, #d4aaff);
+            box-shadow: 0 0 4px #a855f7, 0 0 8px rgba(168,85,247,0.5);
+            flex-shrink: 0;
+        }
+        #titleBadge .pk-enhanced::after {
+            background: linear-gradient(90deg, #d4aaff, #b67fff, transparent);
+        }
+
+        /* Shop sub-tabs */
+        #shopSubNav { display:flex; flex-wrap:wrap; gap:2px; margin-bottom:6px; padding:2px; border-bottom:2px solid #444; }
+        .shopTabBtn { background:linear-gradient(180deg,#3a3a4a 0%,#252530 100%); color:#aaa;
+                      border:1px solid #555; border-radius:4px 4px 0 0; padding:4px 10px;
+                      font-size:11px; cursor:pointer; transition:background 0.15s,color 0.15s; }
+        .shopTabBtn:hover { background:linear-gradient(180deg,#4a4a6a 0%,#333348 100%); color:#ddf; }
+        .shopTabBtn.active { background:linear-gradient(180deg,#c8a84a 0%,#a07828 40%,#8a6418 60%,#c09838 100%);
+                             color:#fff8e0; border-color:#7a5010;
+                             text-shadow:0 1px 3px rgba(0,0,0,0.9),0 0 8px rgba(255,200,80,0.4); }
+
+        /* Dark mode */
+        .dark { background-color: rgb(32,32,32); color: white; }
+        .dark .panel { background-color: rgb(46,46,46); }
+        .dark .button { background-color: rgb(31,31,31); border-color: white !important; color: white !important; }
+        .dark .w3-bordered tr, .dark .w3-table-all tr { border-bottom: 1px solid rgb(73,73,73); }
+        .dark .w3-button:hover { background-color: rgb(82,82,82) !important; color: white !important; }
+        .dark .speed-btn { background-color: rgb(50,50,50); color: white; border-color: #888 !important; }
+        .dark .speed-btn.active { background-color: rgb(46,148,231) !important; color: white !important; }
+        .dark .item-button { background-color: rgb(50,50,50); color: white; }
+        .dark .item-button:hover { background-color: rgb(82,82,82); }
+        .dark #navBar { background-color: rgb(46,46,46); }
+
+        /* Animated header canvases */
+        .header-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; border-radius: 0;
+        }
+        th.category { position: relative; overflow: hidden; }
+
+        @keyframes floatStar { 0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 1; } 80% { opacity: 0.7; } 100% { transform: translateY(-28px) scale(0.4); opacity: 0; } }
+        @keyframes treeWay { 0%, 100% { transform: skewX(0deg); } 50% { transform: skewX(1deg); } }
+    </style>
+</head>
+<body id="body" class="dark">
+<div id="outerContainer" style="padding:4px;">
+    <div id="titleBadge">
+        <span class="pk-progress">Progress</span><span class="pk-knight"> Knight</span>
+        <span class="pk-enhanced"><span>Enhanced</span></span>
+    </div>
+    </div>
+    <div id="outerWrap">
+
+        <!-- Left sidebar -->
+        <div id="sidebar" class="panel w3-padding">
+            <span id="deathText" class="hidden">
+                <div style="font-size:large; color:red">Age has caught up to you</div>
+                <div class="sidebar-element" style="color:gray">Your age has met your lifespan. Use the amulet to rebirth.</div>
+            </span>
+
+            <div style="font-size:13px">Age <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
+            <div class="sidebar-element" style="color:gray">Lifespan: <span id="lifespanDisplay">70</span> years</div>
+
+            <button id="pauseButton" class="w3-button button sidebar-element" style="padding:2px 8px; font-size:11px;" onclick="setPause()">Pause</button>
+
+            <!-- Speed multiplier -->
+            <div class="sidebar-element">
+                <div style="color:gray; margin-bottom:2px; font-size:11px;">Game Speed</div>
+                <div id="speedButtons">
+                    <button class="w3-button speed-btn active" onclick="setSpeedMultiplier(1)">1x</button>
+                    <button class="w3-button speed-btn" onclick="setSpeedMultiplier(2)">2x</button>
+                    <button class="w3-button speed-btn" onclick="setSpeedMultiplier(3)">3x</button>
+                    <button class="w3-button speed-btn" onclick="setSpeedMultiplier(5)">5x</button>
+                    <button class="w3-button speed-btn" onclick="setSpeedMultiplier(10)">10x</button>
+                    <button class="w3-button speed-btn" onclick="setSpeedMultiplier(50)">50x</button>
+                    <button class="w3-button speed-btn hidden" id="speed100xBtn" onclick="setSpeedMultiplier(100)" style="display:none!important">100x</button>
+                    <button class="w3-button speed-btn hidden" id="speed250xBtn" onclick="setSpeedMultiplier(250)" style="display:none!important">250x</button>
+                </div>
+            </div>
+
+            <span id="automation" class="inline" style="margin-left:0px;">
+                <span>
+                    <div class="inline">Auto-promote</div>
+                    <input type="checkbox" class="inline" id="autoPromote">
+                </span><br>
+                <span>
+                    <div class="inline">Auto-learn</div>
+                    <input type="checkbox" class="inline sidebar-element" id="autoLearn">
+                </span>
+            </span>
+
+            <div style="font-size:13px" id="coinDisplay"><span></span><span></span><span></span><span></span></div>
+            <div style="color:gray">Balance (in coins)</div>
+
+            <ul class="sidebar-element" style="padding-left:16px; margin:2px 0 4px;">
+                <li><span style="color:rgb(9,160,230)">Net/day: </span><b id="signDisplay"></b><span id="netDisplay"><span></span><span></span><span></span><span></span></span></li>
+                <li><span style="color:green">Income/day: </span><span id="incomeDisplay"><span></span><span></span><span></span><span></span></span></li>
+                <li><span style="color:red">Expense/day: </span><span id="expenseDisplay"><span></span><span></span><span></span><span></span></span></li>
+            </ul>
+
+            <span id="quickTaskDisplay">
+                <div style="width:155px" class="small-margin inline job progress-bar progressBar">
+                    <div class="progress-fill progressFill" style="background-color:rgb(225,165,0)"></div>
+                    <div class="progress-text name">Task</div>
+                </div>
+                <div class="sidebar-element" style="color:gray">Current job</div>
+                <div style="width:155px" class="small-margin skill progress-bar progressBar">
+                    <div class="progress-fill progressFill" style="background-color:rgb(225,165,0)"></div>
+                    <div class="progress-text name">Task</div>
+                </div>
+                <div class="sidebar-element" style="color:gray">Current skill</div>
+            </span>
+
+            <div style="font-size:12px"><span style="color:rgb(15,105,207)">Happiness: </span><span id="happinessDisplay"></span></div>
+            <div style="color:gray" class="sidebar-element">Affects all xp gain</div>
+
+            <span id="evilInfo">
+                <div style="font-size:12px"><span style="color:rgb(200,0,0)">Evil: </span><span id="evilDisplay"></span></div>
+                <div style="color:gray" class="sidebar-element">Affects dark magic xp gain</div>
+            </span>
+
+
+        </div>
+
+        <!-- Right content -->
+        <div id="mainContent">
+            <!-- Nav -->
+            <div class="panel" id="navBar">
+                <div class="w3-button w3-bar-item tabButton" id="jobTabButton" onclick="setTab(this,'jobs')">Jobs</div>
+                <div class="w3-button w3-bar-item tabButton" onclick="setTab(this,'skills')">Skills</div>
+                <div class="w3-button w3-bar-item tabButton" id="shopTabButton" onclick="setTab(this,'shop')">Shop</div>
+                <div class="w3-button w3-bar-item tabButton" id="townTabButton" onclick="setTab(this,'town')">Town</div>
+                <div style="position:relative;display:inline-block;">
+                <div class="w3-button w3-bar-item tabButton" id="rebirthTabButton" onclick="setTab(this,'rebirth')">Amulet <span id="amuletNotif" class="w3-badge hidden" style="font-size:9px;padding:2px 4px;background:linear-gradient(135deg,#4a90d9,#9b59b6);color:white;box-shadow:0 0 6px rgba(155,89,182,0.7);">!</span></div>
+                <span id="amuletStarNotif" class="hidden" style="position:absolute;top:-5px;right:-5px;font-size:14px;line-height:1;pointer-events:none;color:#b67fff;filter:drop-shadow(0 0 4px #9b59b6) drop-shadow(0 0 8px #4a90d9);z-index:10;">★</span>
+                </div>
+                <div class="w3-button w3-bar-item tabButton" onclick="setTab(this,'settings')" style="float:right">Settings</div>
+            </div>
+
+            <div class="panel w3-padding" style="min-height:200px;">
+
+                <!-- Templates -->
+                <template class="headerRowTaskTemplate">
+                    <tr>
+                        <th class="category" style="width:250px">Job</th>
+                        <th>Level</th>
+                        <th class="valueType">Value</th>
+                        <th>Xp/day</th>
+                        <th>Xp left</th>
+                        <th class="maxLevel hidden">Max</th>
+                        <th class="skipSkill">Skip</th>
+                    </tr>
+                </template>
+                <template class="headerRowItemTemplate">
+                    <tr>
+                        <th class="category" style="width:250px">Item</th>
+                        <th style="width:100px">Active</th>
+                        <th style="width:250px">Effect</th>
+                        <th>Expense/day</th>
+                    </tr>
+                </template>
+                <template class="rowTaskTemplate">
+                    <tr>
+                        <td>
+                            <div class="progress-bar progressBar tooltip">
+                                <div class="progress-fill progressFill"></div>
+                                <div class="progress-text name">Task</div>
+                                <span class="tooltipText"></span>
+                            </div>
+                        </td>
+                        <td class="level">0</td>
+                        <td class="value">
+                            <div class="effect"></div>
+                            <div class="income"><span></span><span></span><span></span><span></span></div>
+                        </td>
+                        <td class="xpGain">0</td>
+                        <td class="xpLeft">0</td>
+                        <td class="maxLevel hidden">0</td>
+                        <td class="skipSkill"><input class="checkbox" type="checkbox"></td>
+                    </tr>
+                </template>
+                <template class="rowItemTemplate">
+                    <tr>
+                        <td>
+                            <button class="button item-button tooltip">
+                                <span class="name"></span>
+                                <span class="tooltipText">tooltip</span>
+                            </button>
+                        </td>
+                        <td>
+                            <div class="w3-border w3-circle" style="width:40px; height:40px; padding:7px">
+                                <div class="active w3-circle" style="width:24px; height:24px;"></div>
+                            </div>
+                        </td>
+                        <td class="effect"></td>
+                        <td class="expense"><span></span><span></span><span></span><span></span></td>
+                    </tr>
+                </template>
+                <template class="requiredRowTemplate">
+                    <td class="w3-text-gray" style="padding-left:16px" colspan="7">
+                        Required:
+                        <span class="value" colspan="7">
+                            <span class="levels"></span>
+                            <span class="coins"><span></span><span></span><span></span><span></span></span>
+                            <span style="color:rgb(200,0,0)" class="evil"></span>
+                        </span>
+                    </td>
+                </template>
+
+                <!-- Tabs -->
+                <div class="tab" id="jobs"><table id="jobTable" class="w3-table w3-bordered"></table></div>
+                <div class="tab" id="skills"><table id="skillTable" class="w3-table w3-bordered"></table></div>
+                <div class="tab" id="shop">
+                    <div id="crystalVesselBlock" class="hidden" style="margin-bottom:10px; padding:10px; border:2px solid #00cccc; border-radius:6px; background:#001a1a;">
+                        <div style="color:#00ffff; font-size:13px; font-weight:bold; margin-bottom:6px;">⟁ Crystal Vessel of the Watcher</div>
+                        <div style="color:#aaa; font-size:11px; margin-bottom:8px;">A vessel shaped from crystallised time itself. Only one who has lived a thousand years may hold it. To purchase it is to end your journey — and become legend.</div>
+                        <div style="color:#00cccc; font-size:11px; margin-bottom:8px;">Cost: <span id="crystalVesselCost" style="color:#00ffff; font-weight:bold;">1,000,000,000g</span> &nbsp;·&nbsp; Requires: Age ≥ 1000</div>
+                        <button class="w3-button button" id="crystalVesselBtn" onclick="buyCrystalVessel()" style="background:#001a1a; color:#00ffff; border-color:#009999 !important; font-size:11px;">Purchase &amp; Transcend</button>
+                        <div id="crystalVesselStatus" style="color:gray; font-size:11px; margin-top:4px;"></div>
+                    </div>
+                    <!-- Shop sub-navigation -->
+                    <div id="shopSubNav">
+                        <button class="shopTabBtn active" onclick="setShopTab('all',this)">All</button>
+                        <button class="shopTabBtn" onclick="setShopTab('Properties',this)">Properties</button>
+                        <button class="shopTabBtn" onclick="setShopTab('Misc',this)">Equipment</button>
+                        <button class="shopTabBtn" onclick="setShopTab('MagicItems',this)">Magic Items</button>
+                        <button class="shopTabBtn" onclick="setShopTab('DarkItems',this)">Dark Items</button>
+                    </div>
+                    <table id="itemTable" class="w3-table w3-bordered"></table>
+                </div>
+
+                <div class="tab" id="town">
+                    <p style="margin:2px 0; color:gray; font-style:italic;">Your service has earned you a title and a stretch of land far from any village — poor soil, no neighbors but bandits and hermits. It isn't much, but it's yours to build up.</p>
+                    <p style="margin:2px 0">Build your town to generate passive income. <strong>Click a building to purchase.</strong></p>
+                    <p style="display:inline-block; margin:0">Town Income/day: </p>
+                    <div style="display:inline-block; font-weight:bold;" id="townIncomeDisplay"><span></span><span></span><span></span><span></span></div>
+                    <hr style="margin:4px 0">
+                    <table id="townTable" class="w3-table w3-bordered">
+                        <!-- Basic -->
+                        <tr id="town-hdr-basic">
+                            <th class="category" style="width:250px">Basic</th>
+                            <th>Owned</th>
+                            <th>Income/day</th>
+                            <th>Next cost</th>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="woodenHut" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-woodenHut" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Wooden Hut</div>
+                                <span class="tooltipText">Wooden Hut — A humble dwelling. Population grows your tax base.<br>Growth: 1% &nbsp;·&nbsp; Effect: +50c/day tax<br>Next cost: <span id="coins-woodenHut"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-woodenHut">0</td>
+                            <td class="town-income" id="income-woodenHut">—</td>
+                            <td class="town-cost"><span id="nextcost-woodenHut"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="farm" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-farm" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Farm</div>
+                                <span class="tooltipText">Farm — Grows crops for coin income.<br>Growth: 5% &nbsp;·&nbsp; Effect: +150c/day<br>Next cost: <span id="coins-farm"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-farm">0</td>
+                            <td class="town-income" id="income-farm">—</td>
+                            <td class="town-cost"><span id="nextcost-farm"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="grainShed" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-grainShed" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Grain Shed</div>
+                                <span class="tooltipText">Grain Shed — Boosts Farm income by 6% each (compounding).<br>Growth: 7%<br>Next cost: <span id="coins-grainShed"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-grainShed">0</td>
+                            <td class="town-income" id="income-grainShed">—</td>
+                            <td class="town-cost"><span id="nextcost-grainShed"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="lumberMill" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-lumberMill" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Lumber Mill</div>
+                                <span class="tooltipText">Lumber Mill — Chops timber and sells planks. Steady income.<br>Growth: 5% &nbsp;·&nbsp; Effect: +300c/day<br>Next cost: <span id="coins-lumberMill"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-lumberMill">0</td>
+                            <td class="town-income" id="income-lumberMill">—</td>
+                            <td class="town-cost"><span id="nextcost-lumberMill"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="market" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-market" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Market</div>
+                                <span class="tooltipText">Market — Boosts all basic building income by 8% each.<br>Growth: 9%<br>Next cost: <span id="coins-market"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-market">0</td>
+                            <td class="town-income" id="income-market">—</td>
+                            <td class="town-cost"><span id="nextcost-market"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+
+                        <!-- Military & Trade -->
+                        <tr id="town-hdr-military">
+                            <th class="category" style="width:250px">Military &amp; Trade</th>
+                            <th>Owned</th>
+                            <th>Income/day</th>
+                            <th>Next cost</th>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="barracks" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-barracks" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Barracks</div>
+                                <span class="tooltipText">Barracks — Trains soldiers who collect taxes from civilians.<br>Growth: 7% &nbsp;·&nbsp; Effect: +800c/day<br>Next cost: <span id="coins-barracks"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-barracks">0</td>
+                            <td class="town-income" id="income-barracks">—</td>
+                            <td class="town-cost"><span id="nextcost-barracks"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="tradingPost" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-tradingPost" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Trading Post</div>
+                                <span class="tooltipText">Trading Post — Long-distance trade routes bring in exotic coin.<br>Growth: 8% &nbsp;·&nbsp; Effect: +2k/day<br>Next cost: <span id="coins-tradingPost"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-tradingPost">0</td>
+                            <td class="town-income" id="income-tradingPost">—</td>
+                            <td class="town-cost"><span id="nextcost-tradingPost"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="blacksmithShop" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-blacksmithShop" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Smithy</div>
+                                <span class="tooltipText">Smithy — Forges weapons and tools sold to the military.<br>Growth: 7% &nbsp;·&nbsp; Effect: +1.2k/day, boosts Barracks 5%<br>Next cost: <span id="coins-blacksmithShop"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-blacksmithShop">0</td>
+                            <td class="town-income" id="income-blacksmithShop">—</td>
+                            <td class="town-cost"><span id="nextcost-blacksmithShop"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+
+                        <!-- Arcane -->
+                        <tr id="town-hdr-arcane">
+                            <th class="category" style="width:250px">Arcane</th>
+                            <th>Owned</th>
+                            <th>Income/day</th>
+                            <th>Next cost</th>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="magicTower" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-magicTower" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Magic Tower</div>
+                                <span class="tooltipText">Magic Tower — Generates arcane tax revenue.<br>Growth: 8% &nbsp;·&nbsp; Effect: +5k/day<br>Next cost: <span id="coins-magicTower"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-magicTower">0</td>
+                            <td class="town-income" id="income-magicTower">—</td>
+                            <td class="town-cost"><span id="nextcost-magicTower"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="alchemyLab" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-alchemyLab" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Alchemy Lab</div>
+                                <span class="tooltipText">Alchemy Lab — Produces potions sold to knights and nobles.<br>Growth: 9% &nbsp;·&nbsp; Effect: +15k/day, boosts Magic Tower 10%<br>Next cost: <span id="coins-alchemyLab"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-alchemyLab">0</td>
+                            <td class="town-income" id="income-alchemyLab">—</td>
+                            <td class="town-cost"><span id="nextcost-alchemyLab"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="arcaneLibrary" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-arcaneLibrary" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Arcane Library</div>
+                                <span class="tooltipText">Arcane Library — Scholars pay handsomely for access. Boosts all arcane income.<br>Growth: 10% &nbsp;·&nbsp; Boosts all arcane buildings 12%<br>Next cost: <span id="coins-arcaneLibrary"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-arcaneLibrary">0</td>
+                            <td class="town-income" id="income-arcaneLibrary">—</td>
+                            <td class="town-cost"><span id="nextcost-arcaneLibrary"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+
+                        <!-- Grand -->
+                        <tr id="town-hdr-grand">
+                            <th class="category" style="width:250px">Grand</th>
+                            <th>Owned</th>
+                            <th>Income/day</th>
+                            <th>Next cost</th>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="cathedral" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-cathedral" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Cathedral</div>
+                                <span class="tooltipText">Cathedral — The faithful tithe generously. Boosts all town income.<br>Growth: 10% &nbsp;·&nbsp; Effect: +50k/day, +3% to all income<br>Next cost: <span id="coins-cathedral"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-cathedral">0</td>
+                            <td class="town-income" id="income-cathedral">—</td>
+                            <td class="town-cost"><span id="nextcost-cathedral"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                        <tr>
+                            <td><div class="progress-bar progressBar tooltip" id="castle" style="cursor:pointer;">
+                                <div class="progress-fill townFill" id="fill-castle" style="height:22px;background:rgb(46,148,231);width:0%"></div>
+                                <div class="progress-text">Castle</div>
+                                <span class="tooltipText">Castle — Symbol of absolute power. Massively boosts all town income.<br>Growth: 12% &nbsp;·&nbsp; Effect: +200k/day, +5% to all income<br>Next cost: <span id="coins-castle"><span></span><span></span><span></span><span></span></span></span>
+                            </div></td>
+                            <td class="town-count" id="count-castle">0</td>
+                            <td class="town-income" id="income-castle">—</td>
+                            <td class="town-cost"><span id="nextcost-castle"><span></span><span></span><span></span><span></span></span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="tab" id="rebirth">
+                    <ul>
+                        <li style="margin:6px;">You stumble across a strange looking amulet on your 25th birthday. It does not look like it has any worth on the market given that it's made from cheap-looking copper. However, you feel a weird urge to keep the amulet, so you slip it into your pocket for safekeeping.</li>
+                        <li style="margin:6px;" id="rebirthNote1">On your 45th birthday, you feel the amulet shiver uncontrollably in your pocket. A strange etching appears on its centre — the outline of an eye.</li>
+                        <li style="margin:6px;" id="rebirthNote2">
+                            <div style="margin-bottom:6px">On your 65th birthday, a living eyeball emerges from the centre of the amulet. It stares at you with an unsettling intelligence.</div>
+                            <i style="color:grey">By touching the eyeball, you will be reborn, losing all levels and coins. You will gain <b>xp multipliers</b> equal to: <b>1 + max level / 10</b>. <span style="color:rgb(200,0,0)">Something tells you the amulet might transform further after <b>2 whole centuries</b>...</span></i><br>
+                            <button class="w3-button button" style="margin:6px 0" onclick="rebirthOne()">Touch the eye</button>
+                        </li>
+                        <li style="margin:6px;" id="rebirthHint200">
+                            <i style="color:rgb(160,0,0)">The eye watches you. Something stirs beneath it... you sense the amulet is not done with you. Perhaps after <b>2 whole centuries</b>, it will speak.</i>
+                        </li>
+                        <li style="margin:6px;" id="rebirthNote3">
+                            <div style="margin-bottom:6px">At age 200, the amulet seems to respond to you somehow. You sense you could use it to embrace something darker.</div>
+                            <i style="color:rgb(200,0,0)">Embracing evil resets everything — levels, coins, max levels, and your town. But you gain <b><span id="evilGainDisplay"></span> evil</b> and unlock dark magic.</i><br>
+                            <button class="w3-button button" style="margin:6px 0" onclick="rebirthTwo()">Embrace evil</button>
+                        </li>
+                        <li style="margin:6px;" id="rebirthHint350">
+                            <i style="color:rgb(140,80,0)">You get the sense the amulet has more to offer if you make it to <b>350 years</b>.</i>
+                        </li>
+                        <li style="margin:6px;" id="rebirthNote4">
+                            <div style="margin-bottom:6px">At age 350, the amulet offers you a deal.</div>
+                            <i style="color:rgb(180,100,0)">The amulet offers a <b>Pact of Dominion</b>. You lose all evil and coin, but your lifespan is permanently extended by <b>100 years</b> and all job income is doubled forever.</i><br>
+                            <button class="w3-button button" style="margin:6px 0" onclick="rebirthThree()">Accept the Pact</button>
+                        </li>
+                        <li style="margin:6px;" id="rebirthHint500">
+                            <i style="color:rgb(100,0,180)">Something about the amulet has changed since the pact. It feels closer to you now. You suspect <b>500 years</b> is when that changes further.</i>
+                        </li>
+                        <li style="margin:6px;" id="rebirthNote5">
+                            <div style="margin-bottom:6px">At age 500, the amulet's power becomes part of you permanently. You're offered a chance to give up everything for something more lasting.</div>
+                            <i style="color:rgb(130,0,200)">Ascending strips everything. Every level, every coin, every rebirth bonus. In return you gain a permanent <b>x<span id="ascensionMultDisplay">?</span> to ALL xp</b> that can never be lost, and unlock the hidden <b>Celestial</b> job track.</i><br>
+                            <button class="w3-button button" style="margin:6px 0" onclick="rebirthFour()">Ascend</button>
+                        </li>
+                        <li style="margin:6px;" id="rebirthNoteDark">
+                            <div style="margin-bottom:6px">At age 750, the amulet opens up a darker path.</div>
+                            <i style="color:rgb(180,0,0)">Unlock the <b>Dark Dominion</b>. Dark magic jobs gain massive income and evil becomes a source of power rather than corruption.</i>
+                        </li>
+                        <li style="margin:6px;" id="rebirthHint750">
+                            <i style="color:rgb(80,0,100)">You have a feeling something else is waiting for you at age <b>750</b>.</i>
+                        </li>
+                        <li style="margin:6px;" id="rebirthNote6">
+                            <div style="margin-bottom:6px">You have ascended <b><span id="ascensionCountDisplay">0</span></b> time(s). Each ascension compounds your power further.</div>
+                            <i style="color:rgb(0,180,180)">The cycle continues. Each time you ascend, the multiplier grows. <b>How far can you go?</b></i>
+                        </li>
+                        <li style="margin:6px;" id="rebirthNote7">
+                            <div style="margin-bottom:6px">At age 750, the amulet leaves you for good. In its place, you're left with something new.</div>
+                            <i style="color:rgb(160,0,160)">A new power stirs. Your <b>ascension multiplier doubles</b> and a fragment of the void permanently reduces all your expenses by <b>25%</b>.</i><br>
+                            <button class="w3-button button" style="margin:6px 0" onclick="rebirthFive()">Accept the void</button>
+                        </li>
+                        <li style="margin:6px;" id="rebirthHint1000">
+                            <i style="color:rgb(0,120,120)">You keep thinking about the number <b>1000</b>. Something tells you that's significant.</i>
+                        </li>
+                        <li style="margin:6px;" id="rebirthNote8">
+                            <div style="margin-bottom:6px">At age 1000, you reach a permanent state where future rebirths no longer cost you anything.</div>
+                            <i style="color:rgb(0,200,200)">The <b>Eternal Convergence</b>. You retain everything across all future rebirths — levels, coins, max levels, town. Nothing can be taken from you again. Your ascension multiplier is tripled permanently.</i><br>
+                            <button class="w3-button button" style="margin:6px 0; background:#001a1a; color:#00ffff; border-color:#009999 !important;" onclick="rebirthSix()">Become the watcher</button>
+                        </li>
+                        <li style="margin:6px;" id="rebirthNoteDarkRitual" class="hidden">
+                            <div style="margin-bottom:6px">
+                                <b style="color:#cc0000">THE DARK RITUAL</b><br><br>
+                                After 750 years, every dark skill mastered, and your evil at its peak, you have one more option available to you.
+                            </div>
+                            <i style="color:rgb(220,50,50)">
+                                Requirements: Age ≥ 750 · Evil ≥ 25,000 · Eternal Corruptor reached · Lich's Essence ≥ 500 · Void Pact ≥ 300<br><br>
+                                <b>REWARD: This ends the game. You win.</b>
+                            </i><br>
+                            <button class="w3-button button" style="margin:6px 0; background:#3a0000; color:#ff4444; border-color:#880000 !important;" id="darkRitualBtn" onclick="completeDarkRitual()">Perform the Dark Ritual</button>
+                            <div id="darkRitualStatus" style="color:gray; font-size:11px; margin-top:4px;"></div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="tab" id="settings">
+                    <ul>
+                        <li>
+                            <h2>Import/Export Save</h2>
+                            <button class="w3-button button" onclick="importGameData()">Import</button>
+                            <button class="w3-button button" onclick="exportGameData()">Export</button>
+                            <div style="margin-top:16px"><input id="importExportBox" type="text" style="width:300px; height:30px;"></div>
+                        </li>
+                        <li>
+                            <h2>Toggle Light/Dark Mode</h2>
+                            <button class="w3-button button" onclick="setLightDarkMode()">Toggle</button>
+                        </li>
+                        <li>
+                            <h2>Hard Reset Game</h2>
+                            <button id="resetButton" class="w3-button button" style="background-color:#d32f2f !important; color:white !important; border-color:#8b0000 !important;" onclick="resetGameData()">Reset</button>
+                        </li>
+                        <li>
+                            <h2>Community</h2>
+                            <button class="w3-button button" aria-label="Join Discord" style="background-color:#5865F2 !important; border-color:#3a45c4 !important; border-radius:10px; width:64px; height:64px; padding:0; display:flex; align-items:center; justify-content:center;" onclick="window.open('https://discord.gg/4nfU9aVpHK','_blank')">
+                                <svg width="36" height="36" viewBox="0 0 127.14 96.36" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating admin star -->
+<span id="adminStarBtn" onclick="openAdminModal()" style="position:fixed;bottom:14px;right:14px;font-size:22px;line-height:1;cursor:pointer;color:#b67fff;filter:drop-shadow(0 0 4px #9b59b6) drop-shadow(0 0 8px #4a90d9);z-index:9999;user-select:none;">★</span>
+
+<!-- Testing Menu modal -->
+<div id="adminModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;">
+    <div style="background:#1e1e2e;border:2px solid #7a5ab5;border-radius:10px;padding:20px;width:320px;max-width:92vw;position:relative;">
+        <div style="font-size:13px;font-weight:bold;color:#d4aaff;margin-bottom:4px;">★ Testing Menu</div>
+        <div style="font-size:10px;color:#666;margin-bottom:12px;">For testing purposes only — not a feature of the game.</div>
+        <div id="adminModalLock">
+            <input type="password" id="adminPasswordInput" placeholder="Enter password" style="width:100%;height:30px;font-size:13px;padding:4px 8px;border-radius:5px;border:1px solid #555;background:#111;color:white;box-sizing:border-box;margin-bottom:8px;">
+            <button class="w3-button button" onclick="unlockAdmin()" style="width:100%;">Unlock</button>
+            <div id="adminLockMsg" style="color:red;font-size:11px;margin-top:6px;"></div>
+        </div>
+        <div id="adminPanel" style="display:none;">
+            <div style="color:#aaa;font-size:11px;margin-bottom:10px;">Testing tools — for testing only, not a game feature.</div>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:7px;">
+                <label style="font-size:12px;width:90px;">Coins:</label>
+                <input type="number" id="adminCoins" placeholder="Amount" style="flex:1;height:26px;font-size:12px;padding:3px;border-radius:4px;border:1px solid #555;background:#111;color:white;">
+                <button class="w3-button button" onclick="adminSetCoins()">Set</button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:7px;">
+                <label style="font-size:12px;width:90px;">Evil:</label>
+                <input type="number" id="adminEvil" placeholder="Amount" style="flex:1;height:26px;font-size:12px;padding:3px;border-radius:4px;border:1px solid #555;background:#111;color:white;">
+                <button class="w3-button button" onclick="adminSetEvil()">Set</button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:7px;">
+                <label style="font-size:12px;width:90px;">Age (years):</label>
+                <input type="number" id="adminAge" placeholder="Age" style="flex:1;height:26px;font-size:12px;padding:3px;border-radius:4px;border:1px solid #555;background:#111;color:white;">
+                <button class="w3-button button" onclick="adminSetAge()">Set</button>
+            </div>
+            <div style="margin-bottom:7px;">
+                <label style="font-size:12px;display:block;margin-bottom:4px;">Job/Skill:</label>
+                <div style="display:flex;gap:6px;align-items:flex-start;">
+                    <div style="flex:1;position:relative;">
+                        <input type="text" id="adminJobSearch" placeholder="Search..." autocomplete="off"
+                            style="width:100%;height:26px;font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid #555;background:#111;color:white;box-sizing:border-box;"
+                            oninput="adminFilterDropdown()" onfocus="adminShowDropdown()" onblur="setTimeout(adminHideDropdown,150)">
+                        <div id="adminJobDropdown" style="display:none;position:absolute;top:28px;left:0;right:0;max-height:160px;overflow-y:auto;background:#1a1a2e;border:1px solid #7a5ab5;border-radius:0 0 6px 6px;z-index:99999;"></div>
+                    </div>
+                    <input type="number" id="adminJobLevel" placeholder="Lvl" style="width:50px;height:26px;font-size:12px;padding:3px;border-radius:4px;border:1px solid #555;background:#111;color:white;flex-shrink:0;">
+                    <button class="w3-button button" onclick="adminSetJobLevel()" style="flex-shrink:0;">Set</button>
+                </div>
+                <div id="adminJobSelected" style="font-size:11px;color:#b67fff;margin-top:3px;min-height:14px;"></div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
+                <label style="font-size:12px;width:90px;">Max All:</label>
+                <button class="w3-button button" onclick="adminMaxAll()" style="background-color:#5a3a00 !important;color:#ffcc44 !important;border-color:#8a6000 !important;">Max All Jobs/Skills</button>
+            </div>
+            <div id="adminMsg" style="color:#44cc44;font-size:11px;margin-bottom:8px;min-height:16px;"></div>
+            <button class="w3-button button" style="font-size:11px;width:100%;" onclick="lockAdmin()">Lock &amp; Close</button>
+        </div>
+        <span onclick="closeAdminModal()" style="position:absolute;top:8px;right:12px;cursor:pointer;color:#aaa;font-size:16px;">✕</span>
+    </div>
+</div>
+
+<script>
+// ==================== CLASSES ====================
+class Task {
+    constructor(baseData) {
+        this.baseData = baseData;
+        this.name = baseData.name;
+        this.level = 0;
+        this.maxLevel = 0;
+        this.xp = 0;
+        this.xpMultipliers = [];
+    }
+    getMaxXp() { return Math.round(this.baseData.maxXp * (this.level + 1) * Math.pow(1.01, this.level)); }
+    getXpLeft() { return Math.round(this.getMaxXp() - this.xp); }
+    getMaxLevelMultiplier() { return 1 + this.maxLevel / 10; }
+    getXpGain() { return applyMultipliers(10, this.xpMultipliers); }
+    increaseXp() {
+        this.xp += applySpeed(this.getXpGain());
+        if (this.xp >= this.getMaxXp()) {
+            var excess = this.xp - this.getMaxXp();
+            while (excess >= 0) { this.level += 1; excess -= this.getMaxXp(); }
+            this.xp = this.getMaxXp() + excess;
+        }
+    }
+}
+class Job extends Task {
+    constructor(baseData) { super(baseData); this.incomeMultipliers = []; }
+    getLevelMultiplier() { return 1 + Math.log10(this.level + 1); }
+    getIncome() { return applyMultipliers(this.baseData.income, this.incomeMultipliers); }
+}
+class Skill extends Task {
+    constructor(baseData) { super(baseData); }
+    getEffect() { return 1 + this.baseData.effect * this.level; }
+    getEffectDescription() { return "x" + this.getEffect().toFixed(2) + " " + this.baseData.description; }
+}
+class Item {
+    constructor(baseData) {
+        this.baseData = baseData;
+        this.name = baseData.name;
+        this.expenseMultipliers = [];
+    }
+    getEffect() {
+        if (gameData.currentProperty != this && !gameData.currentMisc.includes(this)) return 1;
+        return this.baseData.effect;
+    }
+    getEffectDescription() {
+        var description = this.baseData.description;
+        if (itemCategories["Properties"].includes(this.name)) description = "Happiness";
+        return "x" + this.baseData.effect.toFixed(1) + " " + description;
+    }
+    getExpense() { return applyMultipliers(this.baseData.expense, this.expenseMultipliers); }
+}
+class Requirement {
+    constructor(elements, requirements) { this.elements = elements; this.requirements = requirements; this.completed = false; }
+    isCompleted() {
+        if (this.completed) return true;
+        for (var r of this.requirements) { if (!this.getCondition(r)) return false; }
+        this.completed = true;
+        return true;
+    }
+}
+class TaskRequirement extends Requirement {
+    constructor(e, r) { super(e, r); this.type = "task"; }
+    getCondition(r) { return gameData.taskData[r.task] && gameData.taskData[r.task].level >= r.requirement; }
+}
+class CoinRequirement extends Requirement {
+    constructor(e, r) { super(e, r); this.type = "coins"; }
+    getCondition(r) { return gameData.coins >= r.requirement; }
+}
+class AgeRequirement extends Requirement {
+    constructor(e, r) { super(e, r); this.type = "age"; }
+    getCondition(r) { return daysToYears(gameData.days) >= r.requirement; }
+}
+class EvilRequirement extends Requirement {
+    constructor(e, r) { super(e, r); this.type = "evil"; }
+    getCondition(r) { return gameData.evil >= r.requirement; }
+}
+// Checks both evil threshold AND task/skill levels
+class EvilAndTaskRequirement extends Requirement {
+    constructor(e, evilReq, taskReqs) {
+        super(e, taskReqs);
+        this.evilReq = evilReq;
+        this.type = "evil";
+    }
+    isCompleted() {
+        if (this.completed) return true;
+        if (gameData.evil < this.evilReq) return false;
+        for (var r of this.requirements) { if (!this.getCondition(r)) return false; }
+        this.completed = true;
+        return true;
+    }
+    getCondition(r) { return gameData.taskData[r.task] && gameData.taskData[r.task].level >= r.requirement; }
+}
+
+// ==================== GAME DATA ====================
+var gameData = {
+    saveVersion: 2,
+    taskData: {}, itemData: {}, townData: {},
+    rawTownIncome: 0, coins: 0, days: 365 * 14, evil: 0, paused: false,
+    timeWarpingEnabled: true, rebirthOneCount: 0, rebirthTwoCount: 0,
+    rebirthThreeCount: 0, rebirthFourCount: 0,
+    permanentLifespanBonus: 0, permanentIncomeMultiplier: 1, ascensionXpMultiplier: 1,
+    currentJob: null, currentSkill: null, currentProperty: null, currentMisc: [],
+    speedMultiplier: 1,
+};
+var tempData = {};
+var skillWithLowestMaxXp = null;
+
+const autoPromoteElement = document.getElementById("autoPromote");
+const autoLearnElement = document.getElementById("autoLearn");
+const updateSpeed = 20;
+const baseLifespan = 365 * 70;
+var baseGameSpeed = 4;
+var baseEffect = 0.01;
+
+// ==================== CONTENT DATA ====================
+
+const jobBaseData = {
+    // Common work
+    "Beggar":     {name:"Beggar",     maxXp:50,              income:5},
+    "Farmer":     {name:"Farmer",     maxXp:100,             income:9},
+    "Fisherman":  {name:"Fisherman",  maxXp:200,             income:15},
+    "Miner":      {name:"Miner",      maxXp:400,             income:40},
+    "Blacksmith": {name:"Blacksmith", maxXp:800,             income:80},
+    "Merchant":   {name:"Merchant",   maxXp:1600,            income:150},
+    "Innkeeper":  {name:"Innkeeper",  maxXp:3200,            income:280},
+    "Shipwright": {name:"Shipwright", maxXp:8000,            income:550},
+
+    // Military
+    "Squire":           {name:"Squire",           maxXp:100,           income:5},
+    "Footman":          {name:"Footman",          maxXp:1000,          income:50},
+    "Veteran footman":  {name:"Veteran footman",  maxXp:10000,         income:120},
+    "Knight":           {name:"Knight",           maxXp:100000,        income:300},
+    "Veteran knight":   {name:"Veteran knight",   maxXp:1000000,       income:1000},
+    "Elite knight":     {name:"Elite knight",     maxXp:7500000,       income:3000},
+    "Holy knight":      {name:"Holy knight",      maxXp:40000000,      income:15000},
+    "Legendary knight": {name:"Legendary knight", maxXp:150000000,     income:50000},
+
+    // Arcane Association
+    "Student":             {name:"Student",             maxXp:100000,         income:100},
+    "Apprentice mage":     {name:"Apprentice mage",     maxXp:1000000,        income:1000},
+    "Mage":                {name:"Mage",                maxXp:10000000,       income:7500},
+    "Wizard":              {name:"Wizard",              maxXp:100000000,      income:50000},
+    "Master wizard":       {name:"Master wizard",       maxXp:10000000000,    income:250000},
+    "Chairman":            {name:"Chairman",            maxXp:1000000000000,  income:1000000},
+    "Illustrious Chairman":{name:"Illustrious Chairman",maxXp:7000000000000,  income:1500000},
+
+    // Ministry of Magic (NEW!)
+    "Auror Trainee":      {name:"Auror Trainee",      maxXp:500000,          income:800},
+    "Junior Auror":       {name:"Junior Auror",       maxXp:5000000,         income:5000},
+    "Senior Auror":       {name:"Senior Auror",       maxXp:50000000,        income:25000},
+    "Head Auror":         {name:"Head Auror",         maxXp:500000000,       income:100000},
+    "Unspeakable":        {name:"Unspeakable",        maxXp:5000000000,      income:350000},
+    "Department Head":    {name:"Department Head",    maxXp:50000000000,     income:800000},
+    "Minister of Magic":  {name:"Minister of Magic",  maxXp:500000000000,    income:2000000},
+
+    // Order of Discovery
+    "Junior Caretaker": {name:"Junior Caretaker", maxXp:100000,        income:15},
+    "Lead Caretaker":   {name:"Lead Caretaker",   maxXp:1000000,       income:115},
+    "Freshman":         {name:"Freshman",         maxXp:2000000,       income:250},
+    "Sophomore":        {name:"Sophomore",        maxXp:4000000,       income:500},
+    "Junior":           {name:"Junior",           maxXp:16000000,      income:1000},
+    "Senior":           {name:"Senior",           maxXp:64000000,      income:2000},
+    "Probation":        {name:"Probation",        maxXp:300000000,     income:12000},
+
+    // Nobility
+    "Baronet":             {name:"Baronet",            maxXp:7500000,         income:3500},
+    "Baron":               {name:"Baron",              maxXp:40000000,        income:4500},
+    "Vice Count":          {name:"Vice Count",         maxXp:160000000,       income:6000},
+    "Count":               {name:"Count",              maxXp:640000000,       income:8000},
+    "Duke":                {name:"Duke",               maxXp:2400000000,      income:25000},
+    "Grand Duke":          {name:"Grand Duke",         maxXp:9600000000,      income:40000},
+    "Arch Duke":           {name:"Arch Duke",          maxXp:40000000000,     income:55000},
+    "Lord":                {name:"Lord",               maxXp:160000000000,    income:150000},
+    "High Lord":           {name:"High Lord",          maxXp:160000000000000, income:300000},
+    "King":                {name:"King",               maxXp:160000000000000, income:300000},
+    "High King":           {name:"High King",          maxXp:160000000000000, income:1200000},
+    "Emperor of Mankind":  {name:"Emperor of Mankind", maxXp:160000000000000, income:2500000},
+    // Dark Magic
+    "Cultist":          {name:"Cultist",          maxXp:500000000,       income:150000},
+    "Dark Mage":        {name:"Dark Mage",        maxXp:5000000000,      income:600000},
+    "Necromancer":      {name:"Necromancer",      maxXp:50000000000,     income:2500000},
+    "Blood Priest":     {name:"Blood Priest",     maxXp:200000000000,    income:8000000},
+    "Lich Lord":        {name:"Lich Lord",        maxXp:500000000000,    income:20000000},
+    "Shadow Sovereign": {name:"Shadow Sovereign", maxXp:2000000000000,   income:80000000},
+    "Demon King":       {name:"Demon King",       maxXp:8000000000000,   income:300000000},
+    "Void Archon":      {name:"Void Archon",      maxXp:50000000000000,  income:1500000000},
+    "Eternal Corruptor":{name:"Eternal Corruptor",maxXp:500000000000000, income:10000000000},
+
+};
+
+const skillBaseData = {
+    // Fundamentals
+    "Concentration":  {name:"Concentration",  maxXp:100,  effect:baseEffect,  description:"Skill xp"},
+    "Productivity":   {name:"Productivity",   maxXp:100,  effect:0.01,        description:"Job xp"},
+    "Bargaining":     {name:"Bargaining",     maxXp:100,  effect:-0.01,       description:"Expenses"},
+    "Meditation":     {name:"Meditation",     maxXp:100,  effect:baseEffect,  description:"Happiness"},
+
+    // Combat
+    "Strength":       {name:"Strength",       maxXp:100,  effect:0.01,        description:"Military pay"},
+    "Battle tactics": {name:"Battle tactics", maxXp:100,  effect:0.01,        description:"Military xp"},
+    "Muscle memory":  {name:"Muscle memory",  maxXp:100,  effect:0.01,        description:"Strength xp"},
+    "Endurance":      {name:"Endurance",      maxXp:150,  effect:0.005,       description:"Lifespan"},
+
+    // Magic
+    "Mana control":      {name:"Mana control",      maxXp:100,  effect:baseEffect,  description:"T.A.A. xp"},
+    "Immortality":       {name:"Immortality",       maxXp:100,  effect:0.01,        description:"Longer lifespan"},
+    "Time warping":      {name:"Time warping",      maxXp:100,  effect:0.01,        description:"Gamespeed"},
+    "Super immortality": {name:"Super immortality", maxXp:100,  effect:0.01,        description:"Longer lifespan"},
+    "Spell Mastery":     {name:"Spell Mastery",     maxXp:200,  effect:0.01,        description:"Ministry xp"},
+    "Occlumency":        {name:"Occlumency",        maxXp:300,  effect:0.005,       description:"Ministry xp"},
+    "Legilimency":       {name:"Legilimency",       maxXp:500,  effect:0.008,       description:"Ministry xp"},
+
+    // Mind
+    "Novel Knowledge":    {name:"Novel Knowledge",    maxXp:100,  effect:0.01,        description:"Discovery xp"},
+    "Unusual Insight":    {name:"Unusual Insight",    maxXp:100,  effect:0.005,       description:"Magical xp"},
+    "Trade Psychology":   {name:"Trade Psychology",   maxXp:100,  effect:0.80,        description:"Merchant pay"},
+    "Flow":               {name:"Flow",               maxXp:800,  effect:0.001,       description:"Gamespeed"},
+    "Magical Engineering":{name:"Magical Engineering",maxXp:1000, effect:0.01,        description:"Chairman xp"},
+    "Scales Of Thought":  {name:"Scales Of Thought",  maxXp:1100, effect:0.003,       description:"Magical xp"},
+    "Magical Biology":    {name:"Magical Biology",    maxXp:1500, effect:0.005,       description:"Chairman xp"},
+    "Rhetoric":           {name:"Rhetoric",           maxXp:400,  effect:0.01,        description:"All job pay"},
+
+    // Dark magic
+    "Dark influence":    {name:"Dark influence",    maxXp:100,  effect:0.01,  description:"All xp"},
+    "Evil control":      {name:"Evil control",      maxXp:100,  effect:0.01,  description:"Evil gain"},
+    "Intimidation":      {name:"Intimidation",      maxXp:100,  effect:-0.01, description:"Expenses"},
+    "Demon training":    {name:"Demon training",    maxXp:100,  effect:0.01,  description:"All xp"},
+    "Blood meditation":  {name:"Blood meditation",  maxXp:100,  effect:0.01,  description:"Evil gain"},
+    "Demon's wealth":    {name:"Demon's wealth",    maxXp:100,  effect:0.002, description:"Job pay"},
+    "Soul Leech":        {name:"Soul Leech",        maxXp:200,  effect:0.015, description:"Dark magic xp"},
+    "Necrotic Vitality": {name:"Necrotic Vitality", maxXp:300,  effect:0.02,  description:"Longer lifespan"},
+    "Void Pact":         {name:"Void Pact",         maxXp:500,  effect:0.025, description:"Longer lifespan"},
+    "Lich's Essence":    {name:"Lich's Essence",    maxXp:800,  effect:0.03,  description:"Longer lifespan"},
+    "Eternal Hunger":    {name:"Eternal Hunger",    maxXp:1000, effect:0.01,  description:"Job pay"},
+    "Shadow Step":       {name:"Shadow Step",       maxXp:400,  effect:0.005, description:"Gamespeed"},
+
+};
+
+const itemBaseData = {
+    // Properties
+    "Homeless":    {name:"Homeless",    expense:0,        effect:1},
+    "Tent":        {name:"Tent",        expense:15,       effect:1.4},
+    "Wooden hut":  {name:"Wooden hut",  expense:100,      effect:2},
+    "Cottage":     {name:"Cottage",     expense:750,      effect:3.5},
+    "House":       {name:"House",       expense:3000,     effect:6},
+    "Large house": {name:"Large house", expense:25000,    effect:12},
+    "Small Manor": {name:"Small Manor", expense:300000,   effect:25},
+    "Small palace":{name:"Small palace",expense:5000000,  effect:60},
+    "Grand palace":{name:"Grand palace",expense:190000000,effect:135},
+
+    // Misc
+    "Rag Clothing":              {name:"Rag Clothing",              expense:3,        effect:1.5,  description:"Skill xp"},
+    "Book":                      {name:"Book",                      expense:10,       effect:1.5,  description:"Skill xp"},
+    "Basic Farm Tools":          {name:"Basic Farm Tools",          expense:10,       effect:1.5,  description:"Farm upgrade"},
+    "Dumbbells":                 {name:"Dumbbells",                 expense:50,       effect:1.5,  description:"Strength xp"},
+    "Personal squire":           {name:"Personal squire",           expense:200,      effect:2,    description:"Job xp"},
+    "Steel longsword":           {name:"Steel longsword",           expense:1000,     effect:2,    description:"Military xp"},
+    "Butler":                    {name:"Butler",                    expense:7500,     effect:1.5,  description:"Happiness"},
+    "Sapphire charm":            {name:"Sapphire charm",            expense:50000,    effect:3,    description:"Magic xp"},
+    "Study desk":                {name:"Study desk",                expense:1000000,  effect:2,    description:"Skill xp"},
+    "Library":                   {name:"Library",                   expense:12000000, effect:1.5,  description:"Skill xp"},
+    "Small Field":               {name:"Small Field",               expense:130,      effect:5.0,  description:"Farm upgrade"},
+    "Ox-driven Plow":            {name:"Ox-driven Plow",            expense:200,      effect:2.4,  description:"Farm upgrade"},
+    "Livestock-derived Fertilizer":{name:"Livestock-derived Fertilizer",expense:20,  effect:1.2,  description:"Farm upgrade"},
+    "Cheap Fishing Rod":         {name:"Cheap Fishing Rod",         expense:20,       effect:2.0,  description:"Fishing upgrade"},
+    "Miner's Lantern":           {name:"Miner's Lantern",           expense:35,       effect:1.5,  description:"Mining upgrade"},
+    "Crappy Anvil":              {name:"Crappy Anvil",              expense:50,       effect:1.5,  description:"Blacksmith upgrade"},
+    "Breech Bellows":            {name:"Breech Bellows",            expense:130,      effect:1.8,  description:"Blacksmith upgrade"},
+    "Pack Horse":                {name:"Pack Horse",                expense:80,       effect:3.0,  description:"Merchant upgrade"},
+    "Small Shop":                {name:"Small Shop",                expense:600,      effect:1.5,  description:"Merchant upgrade"},
+    "Weapon Outlet":             {name:"Weapon Outlet",             expense:3000,     effect:3.0,  description:"Merchant upgrade"},
+    // Ministry / Magic items
+    "Ministry Badge":            {name:"Ministry Badge",            expense:5000,     effect:2.0,  description:"Ministry xp"},
+    "Enchanted Quill":           {name:"Enchanted Quill",           expense:25000,    effect:1.8,  description:"Ministry xp"},
+    "Time-Turner":               {name:"Time-Turner",               expense:500000,   effect:1.5,  description:"Gamespeed"},
+    "Invisibility Cloak":        {name:"Invisibility Cloak",        expense:2000000,  effect:2.5,  description:"All xp"},
+    "Elder Wand":                {name:"Elder Wand",                expense:50000000, effect:4.0,  description:"Magic xp"},
+    // New magic items
+    "Crystal Ball":              {name:"Crystal Ball",              expense:150000,   effect:1.8,  description:"Mind xp"},
+    "Philosopher's Stone":       {name:"Philosopher's Stone",       expense:5000000,  effect:2.0,  description:"Alchemy xp"},
+    "Arcane Tome":               {name:"Arcane Tome",               expense:800000,   effect:2.2,  description:"Magic xp"},
+    "Runic Amulet":              {name:"Runic Amulet",              expense:300000,   effect:1.6,  description:"All xp"},
+    "Enchanted Mirror":          {name:"Enchanted Mirror",          expense:3500000,  effect:1.9,  description:"Skill xp"},
+    "Staff of the Ancients":     {name:"Staff of the Ancients",     expense:20000000, effect:3.0,  description:"Magic xp"},
+    "Mana Crystal":              {name:"Mana Crystal",              expense:75000,    effect:1.7,  description:"Magic xp"},
+    // New equipment items
+    "Iron Shield":               {name:"Iron Shield",               expense:500,      effect:1.6,  description:"Military xp"},
+    "Chain Mail":                {name:"Chain Mail",                expense:2500,     effect:1.8,  description:"Military xp"},
+    "Warhorse":                  {name:"Warhorse",                  expense:15000,    effect:2.5,  description:"Military pay"},
+    "Knight's Helm":             {name:"Knight's Helm",             expense:8000,     effect:1.7,  description:"Military xp"},
+    "Merchant's Ledger":         {name:"Merchant's Ledger",         expense:400,      effect:1.4,  description:"Merchant pay"},
+    "Compass":                   {name:"Compass",                   expense:1200,     effect:1.6,  description:"Merchant xp"},
+    "Alchemist's Kit":           {name:"Alchemist's Kit",           expense:6000,     effect:1.7,  description:"Skill xp"},
+    "Scholar's Robes":           {name:"Scholar's Robes",           expense:20000,    effect:1.5,  description:"Skill xp"},
+    // New property tiers
+    "Cave":                      {name:"Cave",                      expense:5,        effect:1.2},
+    "Farmstead":                 {name:"Farmstead",                 expense:40000000, effect:80},
+    "Wizard's Tower":            {name:"Wizard's Tower",            expense:800000000,effect:200},
+    // Dark Items
+    "Soul Shard":                {name:"Soul Shard",                expense:500000,   effect:2.0,  description:"Dark magic xp"},
+    "Bone Totem":                {name:"Bone Totem",                expense:2000000,  effect:1.8,  description:"Dark magic xp"},
+    "Shadow Cloak":              {name:"Shadow Cloak",              expense:8000000,  effect:2.2,  description:"Evil gain"},
+    "Cursed Grimoire":           {name:"Cursed Grimoire",           expense:30000000, effect:2.5,  description:"Dark magic xp"},
+    "Blood Chalice":             {name:"Blood Chalice",             expense:100000000,effect:2.0,  description:"Evil gain"},
+    "Lich's Phylactery":         {name:"Lich's Phylactery",         expense:500000000,effect:3.0,  description:"Dark magic xp"},
+    "Void Sceptre":              {name:"Void Sceptre",              expense:2000000000,effect:4.0, description:"Dark magic xp"},
+};
+
+const jobCategories = {
+    "Common work":            ["Beggar","Farmer","Fisherman","Miner","Blacksmith","Merchant","Innkeeper","Shipwright"],
+    "Military":               ["Squire","Footman","Veteran footman","Knight","Veteran knight","Elite knight","Holy knight","Legendary knight"],
+    "The Arcane Association": ["Student","Apprentice mage","Mage","Wizard","Master wizard","Chairman","Illustrious Chairman"],
+    "Ministry of Magic":      ["Auror Trainee","Junior Auror","Senior Auror","Head Auror","Unspeakable","Department Head","Minister of Magic"],
+    "Nobility":               ["Baronet","Baron","Vice Count","Count","Duke","Grand Duke","Arch Duke","Lord","High Lord","King","High King","Emperor of Mankind"],
+    "Dark Magic":             ["Cultist","Dark Mage","Necromancer","Blood Priest","Lich Lord","Shadow Sovereign","Demon King","Void Archon","Eternal Corruptor"],
+};
+
+const skillCategories = {
+    "Fundamentals": ["Concentration","Productivity","Bargaining","Meditation"],
+    "Combat":       ["Strength","Battle tactics","Muscle memory","Endurance"],
+    "Magic":        ["Mana control","Immortality","Super immortality","Spell Mastery","Occlumency","Legilimency"],
+    "Mind":         ["Unusual Insight","Trade Psychology","Flow","Magical Engineering","Scales Of Thought","Magical Biology","Rhetoric"],
+    "Dark magic":   ["Dark influence","Evil control","Intimidation","Demon training","Blood meditation","Demon's wealth","Soul Leech","Necrotic Vitality","Void Pact","Lich's Essence","Eternal Hunger","Shadow Step"],
+};
+
+const itemCategories = {
+    "Properties": ["Homeless","Cave","Tent","Wooden hut","Cottage","House","Large house","Small Manor","Farmstead","Small palace","Grand palace","Wizard's Tower"],
+    "Misc":       ["Rag Clothing","Book","Basic Farm Tools","Small Field","Ox-driven Plow","Livestock-derived Fertilizer",
+                   "Cheap Fishing Rod","Dumbbells","Miner's Lantern","Crappy Anvil","Breech Bellows","Pack Horse","Small Shop",
+                   "Weapon Outlet","Personal squire","Iron Shield","Chain Mail","Knight's Helm","Warhorse",
+                   "Merchant's Ledger","Compass","Steel longsword","Butler","Alchemist's Kit","Scholar's Robes","Study desk","Library"],
+    "Magic Items":["Sapphire charm","Mana Crystal","Crystal Ball","Runic Amulet","Arcane Tome","Enchanted Mirror",
+                   "Ministry Badge","Enchanted Quill","Time-Turner","Invisibility Cloak","Philosopher's Stone",
+                   "Staff of the Ancients","Elder Wand"],
+    "Dark Items": ["Soul Shard","Bone Totem","Shadow Cloak","Cursed Grimoire","Blood Chalice","Lich's Phylactery","Void Sceptre"],
+};
+
+const headerRowColors = {
+    "Common work":            ["#3d7a1a", "#6abf38"],
+    "Military":               ["#9b1a24", "#e63946"],
+    "The Arcane Association": ["#8B0057", "#D1478A"],
+    "Ministry of Magic":      ["#2e0066", "#6a35b8"],
+    "Nobility":               ["#8a7200", "#f0cc00"],
+    "Fundamentals":           ["#2d3057", "#5c6494"],
+    "Combat":                 ["#a03010", "#ff7043"],
+    "Magic":                  ["#4a1a6a", "#9b59b6"],
+    "Mind":                   ["#4a006a", "#a020c0"],
+    "Dark magic":             ["#3a0008", "#8b0020"],
+    "Dark Magic":             ["#4a0000", "#8b0000"],
+    "Properties":             ["#0d5f7a", "#2ab8e8"],
+    "Misc":                   ["#6a2035", "#c4607a"],
+    "Magic Items":            ["#3a006a", "#9b30e8"],
+    "Dark Items":             ["#1a0000", "#660000"],
+    // Town sections
+    "town-basic":    ["#3d7a1a", "#6abf38"],
+    "town-military": ["#9b1a24", "#e63946"],
+    "town-arcane":   ["#8B0057", "#D1478A"],
+    "town-grand":    ["#8a7200", "#f0cc00"],
+};
+
+const tooltips = {
+    "Beggar": "Struggle day and night for a couple of copper coins.",
+    "Farmer": "Plow the fields and grow the crops. Honest work.",
+    "Fisherman": "Reel in fish and sell them. Relaxing but poor paying.",
+    "Miner": "Delve into dangerous caverns and mine valuable ores.",
+    "Blacksmith": "Smelt ores and carefully forge weapons. Respectable work.",
+    "Merchant": "Travel from town to town, bartering fine goods.",
+    "Innkeeper": "Run a bustling inn at the crossroads of trade routes. Travelers from all lands bring coin and gossip.",
+    "Shipwright": "Build mighty vessels for merchants and naval fleets. Precision woodwork commands premium rates.",
+
+    "Squire": "Carry your knight's shield and sword. Meager pay but valuable experience.",
+    "Footman": "Battle enemy soldiers. Courageous but you are still a small cog.",
+    "Veteran footman": "More experienced than the average footman. The pay is not bad.",
+    "Knight": "Slash through enemies covered in steel from head to toe.",
+    "Veteran knight": "Utilising unmatched combat ability, slaughter enemies effortlessly.",
+    "Elite knight": "Obliterate squadrons with extraordinary proficiency.",
+    "Holy knight": "Collapse entire armies with a magically imbued blade.",
+    "Legendary knight": "Feared worldwide, obliterate entire nations in a blink.",
+
+    "Student": "Study the theory of mana and practice basic spells.",
+    "Apprentice mage": "Under supervision, perform basic spells in battle.",
+    "Mage": "Turn the tides of battle through intermediate spells.",
+    "Wizard": "Ravage entire legions with advanced spells.",
+    "Master wizard": "Perform unbelievable feats with magic at will.",
+    "Chairman": "Elected Chairman of the Arcane Association by your peers. A mysterious note arrives...",
+    "Illustrious Chairman": "Master of life and war. Free to follow your own path of discovery.",
+
+    "Auror Trainee": "Begin training with the Ministry's elite dark-wizard catchers. Long hours, dangerous missions, and questionable pay — but the work matters.",
+    "Junior Auror": "Your first field assignments against dark wizards. You're no longer just a trainee — the dark arts fear you, a little.",
+    "Senior Auror": "Years of combat have honed your reflexes to a razor's edge. Dark wizards know your name and cross the street to avoid you.",
+    "Head Auror": "You lead a team of Aurors against the darkest threats to the wizarding world. Your desk is buried in paperwork but your field instincts are unmatched.",
+    "Unspeakable": "You work in the Department of Mysteries. You cannot speak about what you do, what you've seen, or why that door is always locked. The pay is excellent.",
+    "Department Head": "You oversee a major division of the Ministry. Political maneuvering, endless meetings, and the occasional dragon escape are all in a day's work.",
+    "Minister of Magic": "You are the Minister of Magic. The wizarding world answers to you — and every morning you wonder if that's a privilege or a curse.",
+
+    "Junior Caretaker": "Cleaning chamber pots in the Order's library. Touching books is an offense worthy of expulsion — but you do it anyway.",
+    "Lead Caretaker": "Your leadership of the caretaking team has proven you have some brain cells.",
+    "Freshman": "Your basic studies have begun. Great secrets lurk within these halls.",
+    "Sophomore": "Deeper into the curriculum. The secrets grow stranger.",
+    "Junior": "Mid-tier researcher with growing reputation.",
+    "Senior": "A respected member of the Order with genuine discoveries.",
+    "Probation": "Bottom-of-the-barrel research associate. Any misstep risks banishment.",
+
+    "Baronet": "Your first taste of noble title.", "Baron": "A minor lord with land and serfs.",
+    "Vice Count": "Because Viscount sounds gross.", "Count": "A significant noble of the realm.",
+    "Duke": "Commander of vast territories.", "Grand Duke": "Grand in title and in territory.",
+    "Arch Duke": "Even grander.", "Lord": "Oh lord, more tooltips.",
+    "High Lord": "Power and prestige beyond measure.", "King": "Find yourself a nice Queen. Or three.",
+    "High King": "Even higher. Even nobler.", "Emperor of Mankind": "Go outside.",
+    "Cultist": "You join a small group secretly practicing forbidden rituals.",
+    "Dark Mage": "You've learned to cast spells most wizards refuse to touch.",
+    "Necromancer": "You can raise and command the dead.",
+    "Blood Priest": "Blood rituals keep you alive longer than they should.",
+    "Lich Lord": "You gave up being alive in exchange for power.",
+    "Shadow Sovereign": "You influence events from the shadows without anyone seeing you do it.",
+    "Demon King": "You command legions and most kingdoms are afraid to oppose you.",
+    "Void Archon": "You've found a way past the barrier separating this world from whatever is outside it.",
+    "Eternal Corruptor": "You've been doing this so long that you predate most of what currently exists.",
+
+    "Soul Leech": "Drain the life force of others to accelerate your dark learning.",
+    "Necrotic Vitality": "Channel death energy into your body, warping your flesh to persist far beyond natural limits.",
+    "Void Pact": "Strike a bargain with void entities. They grant centuries of unlife in exchange for your service.",
+    "Lich's Essence": "Bind your soul to a phylactery. You cannot truly die — only be delayed.",
+    "Eternal Hunger": "Your dark appetite drives you to accumulate wealth beyond mortal reckoning.",
+    "Shadow Step": "Move through shadow and time alike, bending the pace of the world around you.",
+
+
+    "Concentration": "Improve your learning speed through intense concentration activities.",
+    "Productivity": "Procrastinate less at work and gain more job experience per day.",
+    "Bargaining": "Study persuasive skills to lower any type of expense.",
+    "Meditation": "Fill your mind with peace to tap into greater happiness.",
+    "Strength": "Train your body. Stronger individuals are paid more in the military.",
+    "Battle tactics": "Create battle strategies, improving military experience.",
+    "Muscle memory": "Strengthen neurons through habit, improving strength gains.",
+    "Endurance": "Push your body beyond its limits. A longer life awaits those who persist.",
+    "Mana control": "Strengthen your mana channels, aiding magical power.",
+    "Immortality": "Lengthen your lifespan through the means of magic.",
+    "Time warping": "Bend space and time through forbidden techniques — faster gamespeed.",
+    "Super immortality": "Harness ancient techniques to lengthen your lifespan drastically.",
+    "Spell Mastery": "Deep study of advanced spellwork enhances your effectiveness in the Ministry's dangerous work.",
+    "Occlumency": "Shield your mind from magical intrusion. Essential for Aurors — and for keeping Ministry secrets, secret.",
+    "Legilimency": "Read others' minds and intentions. An invaluable tool for an Unspeakable — or a ruthless politician.",
+    "Novel Knowledge": "Absorbing new ideas increases your ability to make connections.",
+    "Unusual Insight": "Critical analysis skills grow as magical concepts become relatable.",
+    "Trade Psychology": "Insight into human behavior, useful for unethical financial gain.",
+    "Flow": "Intense concentration warps your perception of time.",
+    "Magical Engineering": "Explore the intersection of magic and invention to enhance your Chairman XP.",
+    "Scales Of Thought": "Shift your focus from the human scale to the smallest structures of existence.",
+    "Magical Biology": "Probe and experiment on cellular structures with magic — the final step toward immortality.",
+    "Rhetoric": "Master the art of persuasion. Your words carry weight in any court, ministry, or marketplace.",
+    "Dark influence": "Formidable power from evil, picking up any job or skill with ease.",
+    "Evil control": "Tame the raging evil within you, improving evil gain between rebirths.",
+    "Intimidation": "Emit a devilish aura, forcing merchants to give heavy discounts.",
+    "Demon training": "Train with forbidden methods to manifest into a demon.",
+    "Blood meditation": "Grow the evil within through sacrifice of other living beings.",
+    "Demon's wealth": "Multiply raw matter of coins through dark magic.",
+
+    "Homeless": "Sleep on the filthy streets. It cannot get worse than this.",
+    "Tent": "A thin sheet of cloth held up by feeble sticks. At least it's a roof.",
+    "Wooden hut": "Shabby logs and hay. Sturdy but pungent.",
+    "Cottage": "Timber frame and thatched roof. Decent living conditions.",
+    "House": "Stone bricks and sturdy timber. Comfortable but expensive.",
+    "Large house": "Multiple floors and many rooms. Spacious with a hefty price.",
+    "Small Manor": "A countryside manor with two hundred acres and associated serfs.",
+    "Small palace": "Rimmed with fine metals such as silver. Lavish and expensive.",
+    "Grand palace": "Completely composed of gold and silver. The utmost luxury.",
+
+    "Rag Clothing": "Cheap clothes to keep you warm enough to focus.",
+    "Book": "Write down your thoughts, allowing you to learn more quickly.",
+    "Basic Farm Tools": "Rusty iron tools to help loosen soil and shape wood.",
+    "Cheap Fishing Rod": "A cracked rod that still reels in bigger fish.",
+    "Dumbbells": "Heavy tools to accumulate strength faster.",
+    "Miner's Lantern": "Light to illuminate mineral deposits in pitch black tunnels.",
+    "Crappy Anvil": "You're pretty sure this used to be someone's chamber pot.",
+    "Breech Bellows": "Two sticks and old trousers. Boosts forge heat and efficiency.",
+    "Pack Horse": "A chestnut horse to haul you and your trade goods.",
+    "Small Shop": "Your first shop on a main street. People will know you exist.",
+    "Weapon Outlet": "A busy military means a busy weapons store.",
+    "Personal squire": "Assists in day-to-day activities, giving you more productive time.",
+    "Steel longsword": "A fine blade to slay enemies quicker and gain more experience.",
+    "Butler": "Keeps your household clean and prepares delicious meals.",
+    "Sapphire charm": "Activates more mana channels in your body for easier magic learning.",
+    "Study desk": "Fine stationary and equipment for furthering your research.",
+    "Library": "A vast collection of books from basic skills to complex magic.",
+    "Small Field": "A neighboring farmer's land, entrusted to you in exchange for caring for his family.",
+    "Ox-driven Plow": "Rent an ox plow team from the local lord.",
+    "Ox-driven Plow": "An ox plow to increase farm efficiency.",
+    "Livestock-derived Fertilizer": "It's poo.",
+    "Ministry Badge": "Your official Ministry of Magic identification. Opens doors — both literal and metaphorical.",
+    "Enchanted Quill": "A self-writing quill that helps you process Ministry paperwork at twice the speed.",
+    "Time-Turner": "A golden hourglass on a chain. Using it wisely gives you extra hours in the day.",
+    "Invisibility Cloak": "Woven from the hair of a Demiguise. Unseen, you learn twice as fast.",
+    "Elder Wand": "The most powerful wand in existence. Magic flows through you effortlessly.",
+    // New magic items
+    "Crystal Ball": "A sphere of polished crystal that focuses your mental energies, sharpening your mind skills.",
+    "Philosopher's Stone": "Legendary substance rumored to perfect all things. Accelerates your alchemical and arcane studies immensely.",
+    "Arcane Tome": "An ancient grimoire filled with forgotten spells and runes. Enhances all magical learning.",
+    "Runic Amulet": "Carved with runes of power. A faint hum suggests it amplifies all kinds of learning.",
+    "Enchanted Mirror": "A mirror that reflects not your face, but your potential. Skill xp accelerates as you study your reflection.",
+    "Staff of the Ancients": "Hewn from a tree struck by a hundred lightning bolts. Channels magical power far beyond ordinary staves.",
+    "Mana Crystal": "A raw mana crystal pulsing with arcane energy. Slightly opens your mana channels.",
+    // New equipment items
+    "Iron Shield": "A solid iron shield. Blocking blows lets you focus on combat technique.",
+    "Chain Mail": "Interlocking iron rings that protect without slowing you down in training.",
+    "Warhorse": "A battle-trained stallion. Your battlefield effectiveness and pay increase substantially.",
+    "Knight's Helm": "A full visor helm that protects your head and intimidates enemies.",
+    "Merchant's Ledger": "A well-organized record of trades. You can see patterns others miss, increasing your profit.",
+    "Compass": "A reliable navigation tool. You find profitable trade routes faster.",
+    "Alchemist's Kit": "Flasks, distillation equipment, and reagents. Useful for studying any skill.",
+    "Scholar's Robes": "Fine robes that mark you as a serious student. You feel sharper wearing them.",
+    // New properties
+    "Cave": "A dry cave. Better than the street, barely.",
+    "Farmstead": "A productive working farm with a comfortable homestead. The pastoral life suits you.",
+    "Wizard's Tower": "A soaring arcane spire filled with magical artefacts and libraries. The pinnacle of scholarly comfort.",
+    // Dark Items
+    "Soul Shard": "A fragment of a harvested soul, pulsing with dark energy. Accelerates your mastery of the dark arts.",
+    "Bone Totem": "Carved from the bones of fallen enemies. Its presence sharpens your necrotic instincts.",
+    "Shadow Cloak": "Woven from solidified shadow. Wearing it stirs your evil and makes you harder to see — in every sense.",
+    "Cursed Grimoire": "A tome bound in demon-hide, filled with forbidden rites. Dark magic flows effortlessly to those who dare read it.",
+    "Blood Chalice": "An ancient cup filled with a substance that is definitely not wine. It feeds your evil like nothing else.",
+    "Lich's Phylactery": "A soul vessel modelled on the Lich Lord's own. Your dark power is anchored to it, impossible to extinguish.",
+    "Void Sceptre": "A staff carved from the bones of a Void entity. Reality itself bends around it, granting unmatched dark mastery.",
+};
+
+// ==================== TOWN BUILDINGS ====================
+function makeTownBuilding(name, id, baseCost, growthFactor, income) {
+    return {
+        name:name, id:id, count:0,
+        baseCost:baseCost, costOfNextBuilding:baseCost, costGrowthFactor:growthFactor,
+        income:income || 0,
+        handleClick: function(e) {
+            var btn = document.getElementById(this.id);
+            var tipEl = btn ? btn.querySelector('.tooltipText') : null;
+            var isMobile = window.matchMedia && window.matchMedia('(hover: none)').matches;
+            if (isMobile && tipEl && !tipEl.classList.contains('show')) {
+                document.querySelectorAll('.tooltipText.show').forEach(function(t) { t.classList.remove('show'); });
+                tipEl.classList.add('show');
+                return;
+            }
+            if (gameData.coins >= this.costOfNextBuilding) {
+                gameData.coins -= this.costOfNextBuilding;
+                this.count++;
+                this.costOfNextBuilding *= this.costGrowthFactor;
+                gameData.rawTownIncome = updateRawTownIncome();
+            }
+            updateTownRow(this);
+        },
+        getIncome: function() { return this.income * this.count; },
+    };
+}
+
+var o_townBuildingsContainer = {
+    // Basic  — costs start at 2 platinum (2,000,000 coins) for Wooden Hut
+    //          growth 1.10 across the board so buying ~100 units is always meaningful
+o_woodenHut:      makeTownBuilding("Wooden Hut", "woodenHut", 2000000, 1.15, 50),
+o_farm:           makeTownBuilding("Farm", "farm", 20000000, 1.15, 150),
+
+o_well:           makeTownBuilding("Well", "well", 50000000, 1.15, 75),
+o_bakery:         makeTownBuilding("Bakery", "bakery", 100000000, 1.16, 250),
+o_grainShed:      makeTownBuilding("Grain Shed", "grainShed", 200000000, 1.16, 0),
+o_lumberMill:     makeTownBuilding("Lumber Mill", "lumberMill", 500000000, 1.16, 300),
+
+o_stable:         makeTownBuilding("Stable", "stable", 1000000000, 1.17, 600),
+o_tavern:         makeTownBuilding("Tavern", "tavern", 2500000000, 1.17, 1200),
+o_market:         makeTownBuilding("Market", "market", 5000000000, 1.18, 0),
+
+o_watchtower:     makeTownBuilding("Watchtower", "watchtower", 10000000000, 1.18, 2500),
+o_barracks:       makeTownBuilding("Barracks", "barracks", 25000000000, 1.18, 5000),
+
+o_blacksmithShop: makeTownBuilding("Smithy", "blacksmithShop", 50000000000, 1.19, 8000),
+o_tradingPost:    makeTownBuilding("Trading Post", "tradingPost", 100000000000, 1.19, 15000),
+
+o_magicTower:     makeTownBuilding("Magic Tower", "magicTower", 500000000000, 1.20, 50000),
+o_alchemyLab:     makeTownBuilding("Alchemy Lab", "alchemyLab", 2000000000000, 1.20, 150000),
+o_arcaneLibrary:  makeTownBuilding("Arcane Library", "arcaneLibrary", 10000000000000, 1.21, 0),
+
+o_cathedral: makeTownBuilding("Cathedral", "cathedral", 50000000000000, 1.22, 500000),
+o_castle: makeTownBuilding("Castle", "castle", 500000000000000, 1.25, 2000000)
+};
+
+// Grain Shed boosts farms — 8% per unit (was 6%)
+o_townBuildingsContainer.o_grainShed.incomeMultiplier = 1.08;
+o_townBuildingsContainer.o_grainShed.role = ["Income Boost"];
+o_townBuildingsContainer.o_grainShed.targets = ["Farm"];
+o_townBuildingsContainer.o_grainShed.calculateMultiplier = function() { return Math.pow(this.incomeMultiplier, this.count); };
+o_townBuildingsContainer.o_grainShed.getIncome = function() { return 0; };
+
+// Market boosts basic buildings — 10% per unit (was 8%), meaningful into late game
+o_townBuildingsContainer.o_market.incomeMultiplier = 1.10;
+o_townBuildingsContainer.o_market.role = ["Income Boost"];
+o_townBuildingsContainer.o_market.targets = ["Basic"];
+o_townBuildingsContainer.o_market.calculateMultiplier = function() { return Math.pow(this.incomeMultiplier, this.count); };
+o_townBuildingsContainer.o_market.getIncome = function() { return 0; };
+
+// Smithy boosts barracks — 8% per unit (was 5%), keeps military track competitive
+o_townBuildingsContainer.o_blacksmithShop.barracksBoostPerUnit = 0.08;
+
+// Alchemy Lab boosts magic tower — 15% per unit (was 10%)
+o_townBuildingsContainer.o_alchemyLab.magicBoostPerUnit = 0.15;
+
+// Arcane library multiplicative boost per owned — 15% per unit (was flat 1.12x)
+o_townBuildingsContainer.o_arcaneLibrary.arcaneBoostMultiplier = 1.15;
+o_townBuildingsContainer.o_arcaneLibrary.getIncome = function() { return 0; };
+
+// Cathedral and Castle boost everything — Cathedral 4% (was 3%), Castle 7% (was 5%)
+o_townBuildingsContainer.o_cathedral.globalBoostPerUnit = 0.04;
+o_townBuildingsContainer.o_castle.globalBoostPerUnit = 0.07;
+
+function updateRawTownIncome() {
+    var B = o_townBuildingsContainer;
+
+    // Global boost from Cathedral + Castle
+    var globalMult = 1;
+    globalMult *= Math.pow(1 + B.o_cathedral.globalBoostPerUnit, B.o_cathedral.count);
+    globalMult *= Math.pow(1 + B.o_castle.globalBoostPerUnit, B.o_castle.count);
+
+    // Basic income boost from Market
+    var basicMult = B.o_market.calculateMultiplier ? B.o_market.calculateMultiplier() : 1;
+
+    // Farm income boosted by Grain Shed
+    var farmMult = B.o_grainShed.calculateMultiplier ? B.o_grainShed.calculateMultiplier() : 1;
+    var farmIncome = B.o_farm.getIncome() * farmMult * basicMult;
+
+    // Other basic buildings boosted by market
+    var hutIncome    = B.o_woodenHut.getIncome() * basicMult;
+    var lumberIncome = B.o_lumberMill.getIncome() * basicMult;
+
+    // Military: Smithy boosts Barracks
+    var smithyMult = 1 + B.o_blacksmithShop.barracksBoostPerUnit * B.o_blacksmithShop.count;
+    var barracksIncome   = B.o_barracks.getIncome() * smithyMult;
+    var smithyIncome     = B.o_blacksmithShop.getIncome();
+    var tradingIncome    = B.o_tradingPost.getIncome();
+
+    // Arcane: Alchemy Lab boosts Magic Tower; Arcane Library boosts both
+    var arcaneMult = B.o_arcaneLibrary.count > 0 ? Math.pow(B.o_arcaneLibrary.arcaneBoostMultiplier, B.o_arcaneLibrary.count) : 1;
+    var alchemyMult = 1 + B.o_alchemyLab.magicBoostPerUnit * B.o_alchemyLab.count;
+    var magicIncome   = B.o_magicTower.getIncome() * alchemyMult * arcaneMult;
+    var alchemyIncome = B.o_alchemyLab.getIncome() * arcaneMult;
+
+    // Cathedral & Castle direct income
+    var cathedralIncome = B.o_cathedral.getIncome();
+    var castleIncome    = B.o_castle.getIncome();
+
+    var total = (farmIncome + hutIncome + lumberIncome + barracksIncome + smithyIncome +
+                 tradingIncome + magicIncome + alchemyIncome + cathedralIncome + castleIncome) * globalMult;
+    return Math.round(total);
+}
+
+function updateTownTooltip(e, building) {
+    updateTownRow(building);
+}
+
+function updateTownRow(ob) {
+    var countEl  = document.getElementById('count-'   + ob.id);
+    var incomeEl = document.getElementById('income-'  + ob.id);
+    var fillEl   = document.getElementById('fill-'    + ob.id);
+    var costEl   = document.getElementById('nextcost-' + ob.id);
+    var oldCostEl = document.getElementById('coins-'  + ob.id);
+    if (countEl)  countEl.textContent = ob.count;
+    if (incomeEl) incomeEl.textContent = ob.income > 0 ? format(ob.getIncome()) + 'c' : '—';
+    // Fill bar: show % of 10-owned milestone, capped at 100
+    if (fillEl) {
+        var pct = Math.min(100, (ob.count % 10) / 10 * 100);
+        if (ob.count > 0 && ob.count % 10 === 0) pct = 100;
+        fillEl.style.width = pct + '%';
+        // Highlight bar if player can afford next
+        fillEl.style.backgroundColor = gameData.coins >= ob.costOfNextBuilding
+            ? 'rgb(80, 200, 80)' : 'rgb(46,148,231)';
+    }
+    if (costEl)    formatCoins(ob.costOfNextBuilding, costEl);
+    if (oldCostEl) formatCoins(ob.costOfNextBuilding, oldCostEl);
+}
+
+function updateAllTownTooltips() {
+    for (var b in o_townBuildingsContainer) {
+        updateTownRow(o_townBuildingsContainer[b]);
+    }
+}
+
+function applyTownHeaderStyles() {
+    var sections = [
+        {id:'town-hdr-basic',    key:'town-basic',  stars:false},
+        {id:'town-hdr-military', key:'town-military',stars:false},
+        {id:'town-hdr-arcane',   key:'town-arcane', stars:true},
+        {id:'town-hdr-grand',    key:'town-grand',  stars:true},
+    ];
+    sections.forEach(function(s) {
+        var row = document.getElementById(s.id);
+        if (!row) return;
+        var colors = headerRowColors[s.key] || ["#333","#666"];
+        var gradient = "linear-gradient(180deg," + colors[1] + " 0%," + colors[0] + " 40%," + colors[0] + " 60%," + colors[1] + "88 100%)";
+        var shine = "linear-gradient(180deg,rgba(255,255,255,0.18) 0%,rgba(255,255,255,0.04) 50%,rgba(0,0,0,0.15) 100%)";
+        row.querySelectorAll('th').forEach(function(th) {
+            th.style.background    = gradient + "," + shine;
+            th.style.color         = "#ffffff";
+            th.style.textShadow    = "0 1px 3px rgba(0,0,0,0.9)";
+            th.style.borderTop     = "1px solid " + colors[1];
+            th.style.borderBottom  = "2px solid " + colors[0];
+            th.style.boxShadow     = "inset 0 1px 0 rgba(255,255,255,0.15)";
+            th.style.setProperty("padding", "2px 6px", "important");
+            th.style.fontSize      = "10px";
+            th.style.lineHeight    = "1.2";
+        });
+        if (s.stars) {
+            attachStarCanvas(row.querySelector('.category'), 24);
+        }
+    });
+}
+
+
+function saveTownState() {
+    for (var b in o_townBuildingsContainer) {
+        var ob = o_townBuildingsContainer[b];
+        gameData.townData[ob.name] = { name:ob.name, count:ob.count, costOfNextBuilding:ob.costOfNextBuilding };
+    }
+}
+function loadTownState() {
+    for (var b in o_townBuildingsContainer) {
+        var ob = o_townBuildingsContainer[b];
+        if (ob.name in gameData.townData) {
+            var saved = gameData.townData[ob.name];
+            ob.count = saved.count;
+            // If saved cost is lower than baseCost (old save before price change), use baseCost
+            ob.costOfNextBuilding = Math.max(saved.costOfNextBuilding, ob.baseCost);
+        }
+    }
+}
+function destroyTownWhileEmbracingEvil() {
+    if (gameData.townData) {
+        for (var b in o_townBuildingsContainer) {
+            var ob = o_townBuildingsContainer[b];
+            ob.count = 0;
+            ob.costOfNextBuilding = ob.baseCost;
+            if (ob.name in gameData.townData) {
+                gameData.townData[ob.name].count = 0;
+                gameData.townData[ob.name].costOfNextBuilding = ob.baseCost;
+            }
+        }
+        gameData.rawTownIncome = 0;
+    }
+}
+
+// ==================== GAME LOGIC ====================
+const units = ["","k","M","B","T","q","Q","Sx","Sp","Oc","No","Dc"];
+
+function getBaseLog(x, y) { return Math.log(y) / Math.log(x); }
+
+function getBindedTaskEffect(n) { var t = gameData.taskData[n]; return t ? t.getEffect.bind(t) : function(){return 1;}; }
+function getBindedItemEffect(n) { var i = gameData.itemData[n]; return i ? i.getEffect.bind(i) : function(){return 1;}; }
+
+function addMultipliers() {
+    for (var taskName in gameData.taskData) {
+        var task = gameData.taskData[taskName];
+        task.xpMultipliers = [];
+        if (task instanceof Job) task.incomeMultipliers = [];
+
+        task.xpMultipliers.push(task.getMaxLevelMultiplier.bind(task));
+        task.xpMultipliers.push(getHappiness);
+        task.xpMultipliers.push(getBindedTaskEffect("Dark influence"));
+        task.xpMultipliers.push(getBindedTaskEffect("Demon training"));
+        task.xpMultipliers.push(function() { return gameData.ascensionXpMultiplier; });
+
+        if (task instanceof Job) {
+            task.incomeMultipliers.push(task.getLevelMultiplier.bind(task));
+            task.incomeMultipliers.push(getBindedTaskEffect("Demon's wealth"));
+            task.incomeMultipliers.push(getBindedTaskEffect("Rhetoric"));
+            task.xpMultipliers.push(getBindedTaskEffect("Productivity"));
+            task.xpMultipliers.push(getBindedItemEffect("Personal squire"));
+        } else if (task instanceof Skill) {
+            task.xpMultipliers.push(getBindedTaskEffect("Concentration"));
+            task.xpMultipliers.push(getBindedItemEffect("Rag Clothing"));
+            task.xpMultipliers.push(getBindedItemEffect("Book"));
+            task.xpMultipliers.push(getBindedItemEffect("Study desk"));
+            task.xpMultipliers.push(getBindedItemEffect("Library"));
+            task.xpMultipliers.push(getBindedItemEffect("Invisibility Cloak"));
+            task.xpMultipliers.push(getBindedItemEffect("Enchanted Mirror"));
+            task.xpMultipliers.push(getBindedItemEffect("Alchemist's Kit"));
+            task.xpMultipliers.push(getBindedItemEffect("Scholar's Robes"));
+            task.xpMultipliers.push(getBindedItemEffect("Runic Amulet"));
+        }
+
+        if (jobCategories["Military"].includes(task.name)) {
+            task.incomeMultipliers.push(getBindedTaskEffect("Strength"));
+            task.xpMultipliers.push(getBindedTaskEffect("Battle tactics"));
+            task.xpMultipliers.push(getBindedItemEffect("Steel longsword"));
+            task.xpMultipliers.push(getBindedItemEffect("Iron Shield"));
+            task.xpMultipliers.push(getBindedItemEffect("Chain Mail"));
+            task.xpMultipliers.push(getBindedItemEffect("Knight's Helm"));
+            task.incomeMultipliers.push(getBindedItemEffect("Warhorse"));
+        } else if (jobCategories["Dark Magic"].includes(task.name)) {
+            task.xpMultipliers.push(getBindedTaskEffect("Dark influence"));
+            task.xpMultipliers.push(getBindedTaskEffect("Demon training"));
+            task.xpMultipliers.push(getBindedTaskEffect("Soul Leech"));
+            task.incomeMultipliers.push(getBindedTaskEffect("Demon's wealth"));
+            task.incomeMultipliers.push(getBindedTaskEffect("Eternal Hunger"));
+            task.xpMultipliers.push(getEvil);
+            task.xpMultipliers.push(getBindedItemEffect("Soul Shard"));
+            task.xpMultipliers.push(getBindedItemEffect("Bone Totem"));
+            task.xpMultipliers.push(getBindedItemEffect("Cursed Grimoire"));
+            task.xpMultipliers.push(getBindedItemEffect("Lich's Phylactery"));
+            task.xpMultipliers.push(getBindedItemEffect("Void Sceptre"));
+        } else if (jobCategories["Ministry of Magic"].includes(task.name)) {
+            task.xpMultipliers.push(getBindedTaskEffect("Spell Mastery"));
+            task.xpMultipliers.push(getBindedTaskEffect("Occlumency"));
+            task.xpMultipliers.push(getBindedTaskEffect("Legilimency"));
+            task.xpMultipliers.push(getBindedItemEffect("Ministry Badge"));
+            task.xpMultipliers.push(getBindedItemEffect("Enchanted Quill"));
+            task.xpMultipliers.push(getBindedItemEffect("Elder Wand"));
+        } else if (task.name === "Farmer") {
+            task.incomeMultipliers.push(getBindedItemEffect("Basic Farm Tools"));
+            task.xpMultipliers.push(getBindedItemEffect("Small Field"));
+            task.incomeMultipliers.push(getBindedItemEffect("Small Field"));
+            task.incomeMultipliers.push(getBindedItemEffect("Ox-driven Plow"));
+            task.xpMultipliers.push(getBindedItemEffect("Ox-driven Plow"));
+            task.incomeMultipliers.push(getBindedItemEffect("Livestock-derived Fertilizer"));
+        } else if (task.name === "Fisherman") {
+            task.incomeMultipliers.push(getBindedItemEffect("Cheap Fishing Rod"));
+            task.xpMultipliers.push(getBindedItemEffect("Cheap Fishing Rod"));
+        } else if (task.name === "Miner") {
+            task.incomeMultipliers.push(getBindedItemEffect("Miner's Lantern"));
+            task.xpMultipliers.push(getBindedItemEffect("Miner's Lantern"));
+        } else if (task.name === "Blacksmith") {
+            task.incomeMultipliers.push(getBindedItemEffect("Crappy Anvil"));
+            task.xpMultipliers.push(getBindedItemEffect("Crappy Anvil"));
+            task.incomeMultipliers.push(getBindedItemEffect("Breech Bellows"));
+            task.xpMultipliers.push(getBindedItemEffect("Breech Bellows"));
+        } else if (task.name === "Merchant") {
+            task.incomeMultipliers.push(getBindedItemEffect("Pack Horse"));
+            task.incomeMultipliers.push(getBindedTaskEffect("Trade Psychology"));
+            task.xpMultipliers.push(getBindedItemEffect("Pack Horse"));
+            task.incomeMultipliers.push(getBindedItemEffect("Small Shop"));
+            task.xpMultipliers.push(getBindedItemEffect("Small Shop"));
+            task.incomeMultipliers.push(getBindedItemEffect("Weapon Outlet"));
+            task.xpMultipliers.push(getBindedItemEffect("Weapon Outlet"));
+            task.incomeMultipliers.push(getBindedItemEffect("Merchant's Ledger"));
+            task.xpMultipliers.push(getBindedItemEffect("Compass"));
+        } else if (task.name === "Chairman" || task.name === "Illustrious Chairman") {
+            task.incomeMultipliers.push(getBindedTaskEffect("Magical Engineering"));
+            task.xpMultipliers.push(getBindedTaskEffect("Magical Engineering"));
+            task.xpMultipliers.push(getBindedTaskEffect("Scales Of Thought"));
+            task.xpMultipliers.push(getBindedTaskEffect("Magical Biology"));
+        } else if (task.name === "Strength") {
+            task.xpMultipliers.push(getBindedTaskEffect("Muscle memory"));
+            task.xpMultipliers.push(getBindedItemEffect("Dumbbells"));
+        } else if (skillCategories["Magic"].includes(task.name)) {
+            task.xpMultipliers.push(getBindedItemEffect("Sapphire charm"));
+            task.xpMultipliers.push(getBindedTaskEffect("Unusual Insight"));
+            task.xpMultipliers.push(getBindedTaskEffect("Scales Of Thought"));
+            task.xpMultipliers.push(getBindedItemEffect("Elder Wand"));
+            task.xpMultipliers.push(getBindedItemEffect("Arcane Tome"));
+            task.xpMultipliers.push(getBindedItemEffect("Mana Crystal"));
+            task.xpMultipliers.push(getBindedItemEffect("Staff of the Ancients"));
+        } else if (skillCategories["Dark magic"].includes(task.name)) {
+            task.xpMultipliers.push(getEvil);
+            task.xpMultipliers.push(getBindedItemEffect("Shadow Cloak"));
+            task.xpMultipliers.push(getBindedItemEffect("Blood Chalice"));
+            if (task.name === "Soul Leech" || task.name === "Eternal Hunger") {
+                task.xpMultipliers.push(getBindedTaskEffect("Blood meditation"));
+            }
+            if (task.name === "Shadow Step") {
+                // handled via getAllTimeMultipliers
+            }
+        }
+
+        if (jobCategories["The Arcane Association"].includes(task.name)) {
+            task.xpMultipliers.push(getBindedTaskEffect("Mana control"));
+            task.xpMultipliers.push(getBindedTaskEffect("Unusual Insight"));
+        }
+        if (task.name === "Endurance") {
+            // Endurance boosts lifespan - handled in getLifespan
+        }
+    }
+
+    for (var itemName in gameData.itemData) {
+        var item = gameData.itemData[itemName];
+        item.expenseMultipliers = [];
+        item.expenseMultipliers.push(getBindedTaskEffect("Bargaining"));
+        item.expenseMultipliers.push(getBindedTaskEffect("Intimidation"));
+    }
+}
+
+function setCustomEffects() {
+    var bargaining = gameData.taskData["Bargaining"];
+    bargaining.getEffect = function() {
+        var m = 1 - getBaseLog(7, bargaining.level + 1) / 10;
+        return m < 0.1 ? 0.1 : m;
+    };
+    var intimidation = gameData.taskData["Intimidation"];
+    intimidation.getEffect = function() {
+        var m = 1 - getBaseLog(7, intimidation.level + 1) / 10;
+        return m < 0.1 ? 0.1 : m;
+    };
+    var flow = gameData.taskData["Flow"];
+    flow.getEffect = function() { return 1 + getBaseLog(100, flow.level + 1) / 1.3; };
+    var immortality = gameData.taskData["Immortality"];
+    immortality.getEffect = function() { return 1 + getBaseLog(33, immortality.level + 1); };
+    var rhetoric = gameData.taskData["Rhetoric"];
+    rhetoric.getEffect = function() { return 1 + getBaseLog(10, rhetoric.level + 1) * 0.5; };
+    var necroticVitality = gameData.taskData["Necrotic Vitality"];
+    necroticVitality.getEffect = function() { return 1 + getBaseLog(20, necroticVitality.level + 1) * 1.5; };
+    var voidPact = gameData.taskData["Void Pact"];
+    voidPact.getEffect = function() { return 1 + getBaseLog(15, voidPact.level + 1) * 2.5; };
+    var lichsEssence = gameData.taskData["Lich's Essence"];
+    lichsEssence.getEffect = function() { return 1 + getBaseLog(10, lichsEssence.level + 1) * 4; };
+    var shadowStep = gameData.taskData["Shadow Step"];
+    shadowStep.getEffect = function() { return 1 + getBaseLog(50, shadowStep.level + 1) / 2; };
+}
+
+function getHappiness() {
+    return getBindedTaskEffect("Meditation")() * getBindedItemEffect("Butler")() * gameData.currentProperty.getEffect();
+}
+function getEvil() { return gameData.evil; }
+
+function applyMultipliers(value, multipliers) {
+    var fm = 1;
+    multipliers.forEach(function(f) { fm *= f(); });
+    return Math.round(value * fm);
+}
+function applySpeed(value) { return value * getGameSpeed() / updateSpeed; }
+
+function getEvilGain() {
+    return gameData.taskData["Evil control"].getEffect() * gameData.taskData["Blood meditation"].getEffect();
+}
+
+function getAllTimeMultipliers() {
+    var fl = gameData.taskData["Flow"].getEffect();
+    var ss = gameData.taskData["Shadow Step"] ? gameData.taskData["Shadow Step"].getEffect() : 1;
+    if (!isFinite(fl) || fl <= 0) fl = 1;
+    if (!isFinite(ss) || ss <= 0) ss = 1;
+    return fl * ss;
+}
+
+function getGameSpeed() {
+    return baseGameSpeed * gameData.speedMultiplier * +!gameData.paused * +isAlive() * getAllTimeMultipliers();
+}
+
+// ==================== SPEED MULTIPLIER ====================
+function setSpeedMultiplier(n) {
+    if (n === 100 && daysToYears(gameData.days) < 200) { n = 1; }
+    if (n === 250 && daysToYears(gameData.days) < 500) { n = 1; }
+    gameData.speedMultiplier = n;
+
+    document.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (btn.textContent === n + 'x') btn.classList.add('active');
+    });
+}
+
+// ==================== EXPENSES / INCOME ====================
+function applyExpenses() {
+    var coins = applySpeed(getExpense());
+    gameData.coins -= coins;
+    if (gameData.coins < 0) goBankrupt();
+}
+function getExpense() {
+    var e = gameData.currentProperty.getExpense();
+    gameData.currentMisc.forEach(function(m) { e += m.getExpense(); });
+    return e;
+}
+function goBankrupt() {
+    gameData.coins = 0;
+    gameData.currentProperty = gameData.itemData["Homeless"];
+    gameData.currentMisc = [];
+}
+function getIncome() {
+    return gameData.currentJob.getIncome() * gameData.permanentIncomeMultiplier + gameData.rawTownIncome;
+}
+function increaseCoins() { gameData.coins += applySpeed(getIncome()); }
+
+// ==================== UI ====================
+function setTab(element, selectedTab) {
+    document.querySelectorAll('.tab').forEach(function(t) { t.style.display = 'none'; });
+    document.getElementById(selectedTab).style.display = 'block';
+    document.querySelectorAll('.tabButton').forEach(function(b) { b.classList.remove('w3-blue-gray'); });
+    element.classList.add('w3-blue-gray');
+    if (selectedTab === 'rebirth') {
+        var n = document.getElementById('amuletNotif'); if (n) n.classList.add('hidden');
+        var sn = document.getElementById('amuletStarNotif'); if (sn) sn.classList.add('hidden');
+        gameData._amuletStarSeenAge = daysToYears(gameData.days);
+    }
+}
+function setShopTab(filter, btn) {
+    document.querySelectorAll('.shopTabBtn').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+
+    var table = document.getElementById('itemTable');
+    if (!table) return;
+    var rows = table.querySelectorAll('tr');
+    rows.forEach(function(row) {
+        if (filter === 'all') {
+            row.style.display = '';
+        } else {
+            // header rows and content rows have the category class (no spaces)
+            if (row.classList.contains(filter) || row.classList.contains('headerRow') && row.classList.contains(filter)) {
+                row.style.display = '';
+            } else if (row.classList.contains('headerRow') || row.classList.contains('requiredRow')) {
+                row.style.display = 'none';
+            } else {
+                // content rows — check if they belong to this category
+                // category membership: row id is "row ItemName", check itemCategories
+                var rowId = row.id.replace('row ', '');
+                var cat = null;
+                for (var c in itemCategories) { if (itemCategories[c].includes(rowId)) { cat = c; break; } }
+                var catClass = cat ? cat.replace(/ /g,'') : null;
+                row.style.display = (catClass === filter) ? '' : 'none';
+            }
+        }
+    });
+    // After filtering, show the header row for the active section only
+    if (filter !== 'all') {
+        table.querySelectorAll('.headerRow').forEach(function(hr) {
+            hr.style.display = hr.classList.contains(filter) ? '' : 'none';
+        });
+        table.querySelectorAll('.requiredRow').forEach(function(rr) {
+            rr.style.display = rr.classList.contains(filter) ? '' : 'none';
+        });
+    }
+}
+function setPause() { gameData.paused = !gameData.paused; }
+function setTimeWarping() { gameData.timeWarpingEnabled = !gameData.timeWarpingEnabled; }
+function setTask(taskName) {
+    var task = gameData.taskData[taskName];
+    task instanceof Job ? gameData.currentJob = task : gameData.currentSkill = task;
+}
+function setProperty(propertyName) { gameData.currentProperty = gameData.itemData[propertyName]; }
+function setMisc(miscName) {
+    var misc = gameData.itemData[miscName];
+    var idx = gameData.currentMisc.indexOf(misc);
+    if (idx !== -1) gameData.currentMisc.splice(idx, 1);
+    else gameData.currentMisc.push(misc);
+}
+
+function createData(data, baseData) {
+    for (var key in baseData) {
+        var entity = baseData[key];
+        if ("income" in entity) data[entity.name] = new Job(entity);
+        else if ("maxXp" in entity) data[entity.name] = new Skill(entity);
+        else data[entity.name] = new Item(entity);
+        data[entity.name].id = "row " + entity.name;
+    }
+}
+
+function createItemDataFromBase(data, baseData) {
+    for (var key in baseData) {
+        var entity = baseData[key];
+        data[entity.name] = new Item(entity);
+        data[entity.name].id = "item " + entity.name;
+    }
+}
+
+function removeSpaces(s) { return s.replace(/ /g, ""); }
+
+function attachStarCanvas(catTh, canvasHeight) {
+    if (!catTh) return;
+    var canvas = document.createElement('canvas');
+    canvas.className = 'header-canvas';
+    canvas.width = 400; canvas.height = canvasHeight;
+    catTh.appendChild(canvas);
+
+    setTimeout(function() {
+        var ctx = canvas.getContext('2d');
+        canvas.width = catTh.offsetWidth || 400;
+        var w = canvas.width, h = canvas.height;
+
+        // Floating stars animation
+        var stars = [];
+        var starCount = Math.max(12, Math.round(w / 16));
+        for (var i = 0; i < starCount; i++) {
+            stars.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                size: 1.3 + Math.random() * 1.7,
+                speed: 0.12 + Math.random() * 0.22,
+                twinkle: Math.random() * Math.PI * 2,
+                twinkleSpeed: 0.03 + Math.random() * 0.05
+            });
+        }
+        function drawStars() {
+            ctx.clearRect(0, 0, w, h);
+            stars.forEach(function(s) {
+                s.y -= s.speed;
+                s.twinkle += s.twinkleSpeed;
+                if (s.y < -3) { s.y = h + 3; s.x = Math.random() * w; }
+                var opacity = 0.55 + 0.45 * Math.sin(s.twinkle);
+                // 4-pointed star shape
+                ctx.save();
+                ctx.globalAlpha = opacity;
+                ctx.translate(s.x, s.y);
+                ctx.beginPath();
+                var r = s.size, r2 = r * 0.4;
+                for (var p = 0; p < 8; p++) {
+                    var ang = (p / 8) * Math.PI * 2 - Math.PI / 2;
+                    var rad = (p % 2 === 0) ? r : r2;
+                    p === 0 ? ctx.moveTo(Math.cos(ang)*rad, Math.sin(ang)*rad) : ctx.lineTo(Math.cos(ang)*rad, Math.sin(ang)*rad);
+                }
+                ctx.closePath();
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#fff7d6';
+                ctx.shadowBlur = 5;
+                ctx.fill();
+                ctx.lineWidth = 0.6;
+                ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+                ctx.stroke();
+                ctx.restore();
+            });
+            requestAnimationFrame(drawStars);
+        }
+        drawStars();
+    }, 50);
+}
+
+function createHeaderRow(templates, categoryType, categoryName) {
+    var headerRow = templates.headerRow.content.firstElementChild.cloneNode(true);
+    headerRow.querySelector('.category').textContent = categoryName;
+    var vtEl = headerRow.querySelector('.valueType');
+    if (vtEl && categoryType !== itemCategories) vtEl.textContent = categoryType === jobCategories ? "Income/day" : "Effect";
+    var colors = headerRowColors[categoryName] || ["#333", "#666"];
+    var gradient = "linear-gradient(180deg, " + colors[1] + " 0%, " + colors[0] + " 40%, " + colors[0] + " 60%, " + colors[1] + "88 100%)";
+    var shine = "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 50%, rgba(0,0,0,0.15) 100%)";
+    headerRow.querySelectorAll('th').forEach(function(th) {
+        th.style.background = gradient + ", " + shine;
+        th.style.color = "#ffffff";
+        th.style.textShadow = "0 1px 3px rgba(0,0,0,0.9)";
+        th.style.borderTop = "1px solid " + colors[1];
+        th.style.borderBottom = "2px solid " + colors[0];
+        th.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.15)";
+    });
+
+    var isMagic = (categoryName === "Magic" || categoryName === "Mind" || categoryName === "The Arcane Association" || categoryName === "Ministry of Magic");
+    var isMagicItems = (categoryName === "Magic Items");
+    var isDark = (categoryName === "Dark magic" || categoryName === "Dark Magic");
+    var isDarkItems = (categoryName === "Dark Items");
+
+    if (isMagicItems) {
+        // Purple stars for Magic Items header
+        var catTh2 = headerRow.querySelector('.category');
+        var canvas2 = document.createElement('canvas');
+        canvas2.className = 'header-canvas';
+        canvas2.width = 400; canvas2.height = 28;
+        catTh2.appendChild(canvas2);
+        setTimeout(function() {
+            var ctx2 = canvas2.getContext('2d');
+            canvas2.width = catTh2.offsetWidth || 400;
+            var w2 = canvas2.width, h2 = canvas2.height;
+            var stars2 = [];
+            var count2 = Math.max(18, Math.round(w2 / 14));
+            for (var i2 = 0; i2 < count2; i2++) {
+                stars2.push({
+                    x: Math.random() * w2, y: Math.random() * h2,
+                    size: 1.2 + Math.random() * 2,
+                    speed: 0.1 + Math.random() * 0.22,
+                    twinkle: Math.random() * Math.PI * 2,
+                    twinkleSpeed: 0.03 + Math.random() * 0.05
+                });
+            }
+            function drawMagicStars() {
+                ctx2.clearRect(0, 0, w2, h2);
+                stars2.forEach(function(s) {
+                    s.y -= s.speed;
+                    s.twinkle += s.twinkleSpeed;
+                    if (s.y < -3) { s.y = h2 + 3; s.x = Math.random() * w2; }
+                    var opacity = 0.6 + 0.4 * Math.sin(s.twinkle);
+                    ctx2.save();
+                    ctx2.globalAlpha = opacity;
+                    ctx2.translate(s.x, s.y);
+                    ctx2.beginPath();
+                    var r = s.size, r2 = r * 0.4;
+                    for (var p = 0; p < 8; p++) {
+                        var ang = (p / 8) * Math.PI * 2 - Math.PI / 2;
+                        var rad = (p % 2 === 0) ? r : r2;
+                        p === 0 ? ctx2.moveTo(Math.cos(ang)*rad, Math.sin(ang)*rad) : ctx2.lineTo(Math.cos(ang)*rad, Math.sin(ang)*rad);
+                    }
+                    ctx2.closePath();
+                    ctx2.fillStyle = '#e8ccff';
+                    ctx2.shadowColor = '#cc88ff';
+                    ctx2.shadowBlur = 7;
+                    ctx2.fill();
+                    ctx2.restore();
+                });
+                requestAnimationFrame(drawMagicStars);
+            }
+            drawMagicStars();
+        }, 50);
+    } else if (isMagic) {
+        attachStarCanvas(headerRow.querySelector('.category'), 28);
+
+    } else if (isDark) {
+        var catTh = headerRow.querySelector('.category');
+        var canvas = document.createElement('canvas');
+        canvas.className = 'header-canvas';
+        canvas.width = 400; canvas.height = 30;
+        catTh.appendChild(canvas);
+
+        setTimeout(function() {
+            var ctx = canvas.getContext('2d');
+            canvas.width = catTh.offsetWidth || 400;
+            var w = canvas.width, h = canvas.height;
+
+            // Floating stars only
+            var darkStars = [];
+            for (var si = 0; si < 28; si++) {
+                darkStars.push({
+                    x:           Math.random() * w,
+                    y:           Math.random() * h,
+                    r:           0.5 + Math.random() * 1.2,
+                    speed:       0.08 + Math.random() * 0.18,
+                    twinkle:     Math.random() * Math.PI * 2,
+                    twinkleSpeed:0.025 + Math.random() * 0.04,
+                    opacity:     Math.random()
+                });
+            }
+
+            function drawDark() {
+                ctx.clearRect(0, 0, w, h);
+
+                // ── Floating stars ──
+                darkStars.forEach(function(s) {
+                    s.y -= s.speed;
+                    s.twinkle += s.twinkleSpeed;
+                    s.opacity = Math.max(0, Math.min(1, (h - s.y) / (h * 0.6))) * (0.4 + 0.55 * Math.abs(Math.sin(s.twinkle)));
+                    if (s.y < -2) { s.y = h + 2; s.x = Math.random() * w; s.opacity = 0; }
+                    ctx.save();
+                    ctx.globalAlpha = s.opacity;
+                    var r = s.r, r2 = r * 0.32;
+                    ctx.fillStyle = '#ffcccc';
+                    ctx.shadowColor = '#ff4444';
+                    ctx.shadowBlur = 3;
+                    ctx.beginPath();
+                    for (var p = 0; p < 8; p++) {
+                        var ang = (p / 8) * Math.PI * 2 - Math.PI / 2;
+                        var rad = (p % 2 === 0) ? r : r2;
+                        p === 0 ? ctx.moveTo(Math.cos(ang)*rad + s.x, Math.sin(ang)*rad + s.y)
+                                : ctx.lineTo(Math.cos(ang)*rad + s.x, Math.sin(ang)*rad + s.y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                });
+
+                requestAnimationFrame(drawDark);
+            }
+            drawDark();
+        }, 50);
+    } else if (isDarkItems) {
+        var catThDI = headerRow.querySelector('.category');
+        var canvasDI = document.createElement('canvas');
+        canvasDI.className = 'header-canvas';
+        canvasDI.width = 400; canvasDI.height = 28;
+        catThDI.appendChild(canvasDI);
+
+        setTimeout(function() {
+            var ctxDI = canvasDI.getContext('2d');
+            canvasDI.width = catThDI.offsetWidth || 400;
+            var wDI = canvasDI.width, hDI = canvasDI.height;
+
+            // Red embers drifting upward
+            var embers = [];
+            var emberCount = Math.max(20, Math.round(wDI / 12));
+            for (var ei = 0; ei < emberCount; ei++) {
+                embers.push({
+                    x: Math.random() * wDI,
+                    y: Math.random() * hDI,
+                    r: 0.8 + Math.random() * 1.8,
+                    speed: 0.15 + Math.random() * 0.28,
+                    drift: (Math.random() - 0.5) * 0.3,
+                    twinkle: Math.random() * Math.PI * 2,
+                    twinkleSpeed: 0.04 + Math.random() * 0.06
+                });
+            }
+            function drawEmbers() {
+                ctxDI.clearRect(0, 0, wDI, hDI);
+                embers.forEach(function(e) {
+                    e.y -= e.speed;
+                    e.x += e.drift;
+                    e.twinkle += e.twinkleSpeed;
+                    if (e.y < -3) { e.y = hDI + 3; e.x = Math.random() * wDI; }
+                    if (e.x < 0) e.x = wDI; if (e.x > wDI) e.x = 0;
+                    var opacity = 0.5 + 0.5 * Math.abs(Math.sin(e.twinkle));
+                    ctxDI.save();
+                    ctxDI.globalAlpha = opacity;
+                    ctxDI.beginPath();
+                    ctxDI.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+                    ctxDI.closePath();
+                    ctxDI.fillStyle = Math.random() > 0.5 ? '#ff3300' : '#cc0000';
+                    ctxDI.shadowColor = '#ff2200';
+                    ctxDI.shadowBlur = 6;
+                    ctxDI.fill();
+                    ctxDI.restore();
+                });
+                requestAnimationFrame(drawEmbers);
+            }
+            drawEmbers();
+        }, 50);
+    }
+
+    headerRow.classList.add(removeSpaces(categoryName));
+    headerRow.classList.add("headerRow");
+    return headerRow;
+}
+
+function createRow(templates, name, categoryName, categoryType) {
+    var row = templates.row.content.firstElementChild.cloneNode(true);
+    row.querySelector('.name').textContent = name;
+    var ttEl = row.querySelector('.tooltipText');
+    if (ttEl) ttEl.textContent = tooltips[name] || name;
+    row.id = "row " + name;
+    if (categoryType !== itemCategories) {
+        row.querySelector('.progressBar').onclick = (function(n) { return function() { setTask(n); }; })(name);
+    } else {
+        var btn = row.querySelector('.button');
+        if (btn) btn.onclick = categoryName === "Properties" ? (function(n) { return function() { setProperty(n); }; })(name) : (function(n) { return function() { setMisc(n); }; })(name);
+    }
+    return row;
+}
+
+function createRequiredRow(categoryName) {
+    var rr = document.querySelector('.requiredRowTemplate').content.firstElementChild.cloneNode(true);
+    rr.classList.add("requiredRow");
+    rr.classList.add(removeSpaces(categoryName));
+    rr.id = categoryName;
+    return rr;
+}
+
+function createAllRows(categoryType, tableId) {
+    var templates = {
+        headerRow: document.querySelector(categoryType === itemCategories ? '.headerRowItemTemplate' : '.headerRowTaskTemplate'),
+        row: document.querySelector(categoryType === itemCategories ? '.rowItemTemplate' : '.rowTaskTemplate'),
+    };
+    var table = document.getElementById(tableId);
+    for (var categoryName in categoryType) {
+        table.appendChild(createHeaderRow(templates, categoryType, categoryName));
+        var category = categoryType[categoryName];
+        category.forEach(function(name) { table.appendChild(createRow(templates, name, categoryName, categoryType)); });
+        table.appendChild(createRequiredRow(categoryName));
+    }
+}
+
+function updateQuickTaskDisplay(taskType) {
+    var currentTask = taskType === "job" ? gameData.currentJob : gameData.currentSkill;
+    var qd = document.getElementById("quickTaskDisplay");
+    var pb = qd.querySelector('.' + taskType);
+    pb.querySelector('.name').textContent = currentTask.name + " lvl " + currentTask.level;
+    pb.querySelector('.progressFill').style.width = (currentTask.xp / currentTask.getMaxXp() * 100) + "%";
+}
+
+function updateRequiredRows(data, categoryType) {
+    var requiredRows = document.querySelectorAll('.requiredRow');
+    requiredRows.forEach(function(requiredRow) {
+        var category = categoryType[requiredRow.id];
+        if (category == null) return;
+        var nextEntity = null;
+        for (var i = 0; i < category.length; i++) {
+            var entityName = category[i];
+            if (i >= category.length - 1) break;
+            var requirements = gameData.requirements[entityName];
+            if (requirements && i === 0 && !requirements.isCompleted()) { nextEntity = data[entityName]; break; }
+            var nextEntityName = category[i + 1];
+            var nextReq = gameData.requirements[nextEntityName];
+            if (nextReq && !nextReq.isCompleted()) { nextEntity = data[nextEntityName]; break; }
+        }
+        if (nextEntity == null) {
+            requiredRow.classList.add("hiddenTask");
+        } else {
+            requiredRow.classList.remove("hiddenTask");
+            var reqObj = gameData.requirements[nextEntity.name];
+            var reqs = reqObj.requirements;
+            var coinEl = requiredRow.querySelector('.coins');
+            var levelEl = requiredRow.querySelector('.levels');
+            var evilEl = requiredRow.querySelector('.evil');
+            coinEl.classList.add("hiddenTask");
+            levelEl.classList.add("hiddenTask");
+            evilEl.classList.add("hiddenTask");
+            var finalText = "";
+            if (data === gameData.taskData) {
+                if (reqObj instanceof EvilAndTaskRequirement) {
+                    evilEl.classList.remove("hiddenTask");
+                    levelEl.classList.remove("hiddenTask");
+                    var evilNeeded = reqObj.evilReq;
+                    var evilText = gameData.evil >= evilNeeded ? "" : format(evilNeeded) + " evil";
+                    for (var r of reqs) {
+                        var t = gameData.taskData[r.task];
+                        if (!t || t.level >= r.requirement) continue;
+                        finalText += " " + r.task + " level " + t.level + "/" + format(r.requirement) + ",";
+                    }
+                    evilEl.textContent = evilText;
+                    levelEl.textContent = finalText.slice(0, -1);
+                } else if (reqObj instanceof EvilRequirement) {
+                    evilEl.classList.remove("hiddenTask");
+                    evilEl.textContent = format(reqs[0].requirement) + " evil";
+                } else {
+                    levelEl.classList.remove("hiddenTask");
+                    for (var r of reqs) {
+                        var t = gameData.taskData[r.task];
+                        if (!t || t.level >= r.requirement) continue;
+                        finalText += " " + r.task + " level " + t.level + "/" + format(r.requirement) + ",";
+                    }
+                    levelEl.textContent = finalText.slice(0, -1);
+                }
+            } else if (data === gameData.itemData) {
+                if (reqObj instanceof EvilAndTaskRequirement) {
+                    evilEl.classList.remove("hiddenTask");
+                    levelEl.classList.remove("hiddenTask");
+                    var evilNeeded = reqObj.evilReq;
+                    var evilText = gameData.evil >= evilNeeded ? "" : format(evilNeeded) + " evil";
+                    for (var r of reqs) {
+                        var t = gameData.taskData[r.task];
+                        if (!t || t.level >= r.requirement) continue;
+                        finalText += " " + r.task + " level " + t.level + "/" + format(r.requirement) + ",";
+                    }
+                    evilEl.textContent = evilText;
+                    levelEl.textContent = finalText.slice(0, -1);
+                } else if (reqObj instanceof CoinRequirement) {
+                    coinEl.classList.remove("hiddenTask");
+                    levelEl.classList.remove("hiddenTask");
+                    formatCoins(reqs[0].requirement, coinEl);
+                } else if (reqObj instanceof TaskRequirement) {
+                    levelEl.classList.remove("hiddenTask");
+                    for (var r of reqs) {
+                        var t = gameData.taskData[r.task];
+                        if (!t || t.level >= r.requirement) continue;
+                        finalText += " " + r.task + " level " + format(t.level) + "/" + format(r.requirement) + ",";
+                    }
+                    levelEl.textContent = finalText.slice(0, -1);
+                }
+            }
+        }
+    });
+}
+
+function updateTaskRows() {
+    for (var key in gameData.taskData) {
+        var task = gameData.taskData[key];
+        var row = document.getElementById("row " + task.name);
+        if (!row) continue;
+        row.querySelector('.level').textContent = task.level;
+        row.querySelector('.xpGain').textContent = format(task.getXpGain());
+        row.querySelector('.xpLeft').textContent = format(task.getXpLeft());
+        var mlEl = row.querySelector('.maxLevel');
+        if (mlEl) { mlEl.textContent = task.maxLevel; gameData.rebirthOneCount > 0 ? mlEl.classList.remove('hidden') : mlEl.classList.add('hidden'); }
+        var pf = row.querySelector('.progressFill');
+        pf.style.width = (task.xp / task.getMaxXp() * 100) + "%";
+        (task === gameData.currentJob || task === gameData.currentSkill) ? pf.classList.add('current') : pf.classList.remove('current');
+        var valEl = row.querySelector('.value');
+        var incEl = valEl.querySelector('.income');
+        var effEl = valEl.querySelector('.effect');
+        if (task instanceof Job) {
+            incEl.style.display = 'block'; effEl.style.display = 'none';
+            formatCoins(task.getIncome(), incEl);
+        } else {
+            incEl.style.display = 'none'; effEl.style.display = 'block';
+            effEl.textContent = task.getEffectDescription();
+        }
+        var ssEl = row.querySelector('.skipSkill');
+        if (ssEl) ssEl.style.display = task instanceof Skill && autoLearnElement.checked ? 'block' : 'none';
+    }
+}
+
+function updateItemRows() {
+    for (var key in gameData.itemData) {
+        var item = gameData.itemData[key];
+        var row = document.getElementById("row " + item.name);
+        if (!row) continue;
+        var active = row.querySelector('.active');
+        if (!active) continue;
+        var color;
+        if (itemCategories["Properties"].includes(item.name)) color = headerRowColors["Properties"][1];
+        else if (itemCategories["Magic Items"].includes(item.name)) color = headerRowColors["Magic Items"][1];
+        else color = headerRowColors["Misc"][1];
+        active.style.backgroundColor = (gameData.currentMisc.includes(item) || item === gameData.currentProperty) ? color : "white";
+        var effEl = row.querySelector('.effect');
+        if (effEl) effEl.textContent = item.getEffectDescription();
+        var expEl = row.querySelector('.expense');
+        if (expEl) formatCoins(item.getExpense(), expEl);
+    }
+}
+
+function updateHeaderRows(categories) {
+    for (var categoryName in categories) {
+        var className = removeSpaces(categoryName);
+        var headerRow = document.querySelector('.' + className + '.headerRow');
+        if (!headerRow) continue;
+        var mlEl = headerRow.querySelector('.maxLevel');
+        if (mlEl) gameData.rebirthOneCount > 0 ? mlEl.classList.remove('hidden') : mlEl.classList.add('hidden');
+        var ssEl = headerRow.querySelector('.skipSkill');
+        if (ssEl) ssEl.style.display = (categories === skillCategories && autoLearnElement.checked) ? 'block' : 'none';
+    }
+}
+
+function updateText() {
+    document.getElementById("ageDisplay").textContent = daysToYears(gameData.days);
+    document.getElementById("dayDisplay").textContent = getDay();
+    document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan());
+    document.getElementById("pauseButton").textContent = gameData.paused ? "Play" : "Pause";
+    // Amulet star notification — show ★ when a new transformation milestone is reached
+    var _amuletMilestones = Object.values(gameData.requirements).filter(function(r){return r.type==="age";}).map(function(r){return r.requirements[0].requirement;}).filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+    var _currentAge = daysToYears(gameData.days);
+    var _seenAge = gameData._amuletStarSeenAge || 0;
+    var _starNotif = document.getElementById('amuletStarNotif');
+    if (_starNotif) {
+        var _hasNew = _amuletMilestones.some(function(m) { return _currentAge >= m && _seenAge < m; });
+        _hasNew ? _starNotif.classList.remove('hidden') : _starNotif.classList.add('hidden');
+    }
+    var cvBlock = document.getElementById("crystalVesselBlock");
+    var amuletNotif = document.getElementById("amuletNotif");
+    if (daysToYears(gameData.days) >= 1000) {
+        if (cvBlock) cvBlock.classList.remove("hidden");
+        if (amuletNotif) amuletNotif.classList.remove("hidden");
+    } else {
+        if (cvBlock) cvBlock.classList.add("hidden");
+        if (amuletNotif) amuletNotif.classList.add("hidden");
+    }
+    // Unlock 100x speed after 200 years
+    var btn100 = document.getElementById("speed100xBtn");
+    if (btn100) {
+        if (daysToYears(gameData.days) >= 200) {
+            btn100.classList.remove("hidden");
+            btn100.style.removeProperty("display");
+        } else {
+            btn100.classList.add("hidden");
+            btn100.style.setProperty("display", "none", "important");
+        }
+    }
+    var btn250 = document.getElementById("speed250xBtn");
+    if (btn250) {
+        if (daysToYears(gameData.days) >= 500) {
+            btn250.classList.remove("hidden");
+            btn250.style.removeProperty("display");
+        } else {
+            btn250.classList.add("hidden");
+            btn250.style.setProperty("display", "none", "important");
+        }
+    }
+    formatCoins(gameData.coins, document.getElementById("coinDisplay"));
+    setSignDisplay();
+    formatCoins(Math.abs(getIncome() - getExpense()), document.getElementById("netDisplay"));
+    formatCoins(getIncome(), document.getElementById("incomeDisplay"));
+    formatCoins(getExpense(), document.getElementById("expenseDisplay"));
+    document.getElementById("happinessDisplay").textContent = getHappiness().toFixed(1);
+    document.getElementById("evilDisplay").textContent = gameData.evil.toFixed(1);
+    document.getElementById("evilGainDisplay").textContent = getEvilGain().toFixed(1);
+    formatCoins(gameData.rawTownIncome, document.getElementById("townIncomeDisplay"));
+    updateAllTownTooltips();
+    var amd = document.getElementById("ascensionMultDisplay");
+    if (amd) { var b = 1+(gameData.rebirthOneCount*0.5)+(gameData.rebirthTwoCount*1)+(gameData.rebirthThreeCount*2); amd.textContent = b.toFixed(1); }
+    var acd = document.getElementById("ascensionCountDisplay");
+    if (acd) acd.textContent = gameData.rebirthFourCount;
+}
+
+function setSignDisplay() {
+    var s = document.getElementById("signDisplay");
+    if (getIncome() > getExpense()) { s.textContent = "+"; s.style.color = "green"; }
+    else if (getExpense() > getIncome()) { s.textContent = "-"; s.style.color = "red"; }
+    else { s.textContent = ""; s.style.color = "gray"; }
+}
+
+function hideEntities() {
+    for (var key in gameData.requirements) {
+        var req = gameData.requirements[key];
+        var completed = req.isCompleted();
+        req.elements.forEach(function(el) { if (el) completed ? el.classList.remove('hidden') : el.classList.add('hidden'); });
+    }
+}
+
+function doCurrentTask(task) {
+    task.increaseXp();
+    if (task instanceof Job) increaseCoins();
+}
+
+function daysToYears(days) { return Math.floor(days / 365); }
+function getDay() { return Math.floor(gameData.days - daysToYears(gameData.days) * 365); }
+function increaseDays() { gameData.days += applySpeed(1); }
+
+function format(number) {
+    if (!number || number === 0) return "0";
+    var tier = Math.log10(Math.abs(number)) / 3 | 0;
+    if (tier === 0) return Math.round(number).toString();
+    var suffix = units[tier] || "?";
+    var scale = Math.pow(10, tier * 3);
+    return (number / scale).toFixed(1) + suffix;
+}
+
+function formatCoins(coins, element) {
+    if (!element) return;
+    var tiers = ["p","g","s"];
+    var colors = {"p":"#79b9c7","g":"#E5C100","s":"#a8a8a8","c":"#a15c2f"};
+    var leftOver = Math.max(0, coins);
+    var spans = element.querySelectorAll('span');
+    if (spans.length < 4) return;
+    for (var i = 0; i < 3; i++) {
+        var x = Math.floor(leftOver / Math.pow(10, (3 - i) * 2));
+        leftOver = Math.floor(leftOver - x * Math.pow(10, (3 - i) * 2));
+        spans[i].textContent = x > 0 ? format(x) + tiers[i] + " " : "";
+        spans[i].style.color = colors[tiers[i]];
+    }
+    if (leftOver === 0 && coins > 0) { spans[3].textContent = ""; return; }
+    spans[3].textContent = Math.floor(leftOver) + "c";
+    spans[3].style.color = colors["c"];
+}
+
+function getTaskElement(taskName) {
+    var task = gameData.taskData[taskName];
+    return task ? document.getElementById(task.id) : null;
+}
+function getItemElement(itemName) {
+    var item = gameData.itemData[itemName];
+    return item ? document.getElementById(item.id) : null;
+}
+function getElementsByClass(className) {
+    return Array.from(document.getElementsByClassName(removeSpaces(className)));
+}
+
+function setLightDarkMode() {
+    var body = document.getElementById("body");
+    body.classList.contains("dark") ? body.classList.remove("dark") : body.classList.add("dark");
+}
+
+function rebirthOne() { gameData.rebirthOneCount += 1; rebirthReset(); }
+function rebirthThree() {
+    if (daysToYears(gameData.days) < 350) return;
+    gameData.rebirthThreeCount += 1;
+    gameData.permanentLifespanBonus += 100;
+    gameData.permanentIncomeMultiplier *= 2;
+    gameData.evil = 0; gameData.coins = 0;
+    gameData.days = 365 * 14;
+    gameData.currentJob = gameData.taskData["Beggar"];
+    gameData.currentSkill = gameData.taskData["Concentration"];
+    gameData.currentProperty = gameData.itemData["Homeless"];
+    gameData.currentMisc = [];
+    for (var t in gameData.taskData) { gameData.taskData[t].level = 0; gameData.taskData[t].xp = 0; }
+}
+function rebirthFour() {
+    if (daysToYears(gameData.days) < 500) return;
+    var bonus = 1 + (gameData.rebirthOneCount * 0.5) + (gameData.rebirthTwoCount * 1) + (gameData.rebirthThreeCount * 2);
+    gameData.ascensionXpMultiplier *= bonus;
+    gameData.rebirthFourCount += 1;
+    gameData.rebirthOneCount = 0; gameData.rebirthTwoCount = 0; gameData.rebirthThreeCount = 0;
+    gameData.evil = 0; gameData.coins = 0; gameData.permanentLifespanBonus = 0;
+    gameData.permanentIncomeMultiplier = 1;
+    gameData.days = 365 * 14;
+    gameData.currentJob = gameData.taskData["Beggar"];
+    gameData.currentSkill = gameData.taskData["Concentration"];
+    gameData.currentProperty = gameData.itemData["Homeless"];
+    gameData.currentMisc = [];
+    for (var t in gameData.taskData) {
+        gameData.taskData[t].level = 0; gameData.taskData[t].xp = 0; gameData.taskData[t].maxLevel = 0;
+    }
+    destroyTownWhileEmbracingEvil();
+}
+function rebirthFive() {
+    if (daysToYears(gameData.days) < 750) return;
+    gameData.ascensionXpMultiplier *= 2;
+    gameData.permanentExpenseReduction = (gameData.permanentExpenseReduction || 1) * 0.75;
+    gameData.days = 365 * 14;
+    gameData.currentJob = gameData.taskData["Beggar"];
+    gameData.currentSkill = gameData.taskData["Concentration"];
+    gameData.currentProperty = gameData.itemData["Homeless"];
+    gameData.currentMisc = [];
+    for (var t in gameData.taskData) { gameData.taskData[t].level = 0; gameData.taskData[t].xp = 0; }
+}
+function rebirthSix() {
+    if (daysToYears(gameData.days) < 1000) return;
+    gameData.ascensionXpMultiplier *= 3;
+    gameData.eternalConvergence = true;
+    alert("You have become the Watcher. All future rebirths preserve your levels, coins, and town.");
+}
+function buyCrystalVessel() {
+    var age = daysToYears(gameData.days);
+    var cost = 1e11;
+    var status = document.getElementById("crystalVesselStatus");
+    if (age < 1000) { if (status) status.textContent = "⛔ You must reach age 1000 first."; return; }
+    if (gameData.coins < cost) { if (status) status.textContent = "⛔ Not enough coins."; return; }
+    gameData.coins -= cost;
+    gameData.paused = true;
+    document.body.innerHTML = "<div style='display:flex;align-items:center;justify-content:center;height:100vh;background:#000510;flex-direction:column;'>" +
+        "<div style='color:#00ffff;font-size:28px;font-weight:bold;text-align:center;margin-bottom:20px;letter-spacing:4px;'>YOU HAVE WON</div>" +
+        "<div style='color:#88eeff;font-size:15px;max-width:600px;text-align:center;line-height:2.2;'>" +
+        "A thousand years of progress, condensed into a single moment.<br><br>" +
+        "You've outgrown every life you used to live.<br><br>" +
+        "<span style='color:#555;font-size:12px;'>Survived " + age + " years</span>" +
+        "</div>" +
+        "<div style='margin-top:40px'><button onclick='location.href=location.href' style='background:#001a1a;color:#00ffff;border:1px solid #009999;padding:10px 24px;font-size:14px;cursor:pointer;border-radius:4px;'>Begin Again</button></div>" +
+        "</div>";
+}
+function rebirthTwo() {
+    gameData.rebirthTwoCount += 1;
+    gameData.evil += getEvilGain();
+    rebirthReset();
+    for (var taskName in gameData.taskData) gameData.taskData[taskName].maxLevel = 0;
+    destroyTownWhileEmbracingEvil();
+}
+function completeDarkRitual() {
+    var age = daysToYears(gameData.days);
+    var evil = gameData.evil;
+    var lichLvl = gameData.taskData["Lich's Essence"] ? gameData.taskData["Lich's Essence"].level : 0;
+    var voidLvl = gameData.taskData["Void Pact"] ? gameData.taskData["Void Pact"].level : 0;
+    var ecJob = gameData.taskData["Eternal Corruptor"] ? gameData.taskData["Eternal Corruptor"].level : 0;
+    var status = document.getElementById("darkRitualStatus");
+    var missing = [];
+    if (age < 750) missing.push("Age " + age + "/750");
+    if (evil < 25000) missing.push("Evil " + Math.floor(evil) + "/25,000");
+    if (ecJob < 1) missing.push("Eternal Corruptor not reached");
+    if (lichLvl < 500) missing.push("Lich's Essence " + lichLvl + "/500");
+    if (voidLvl < 300) missing.push("Void Pact " + voidLvl + "/300");
+    if (missing.length > 0) {
+        if (status) status.textContent = "⛔ Missing: " + missing.join(" · ");
+        return;
+    }
+    gameData.paused = true;
+    document.body.innerHTML = "<div style='display:flex;align-items:center;justify-content:center;height:100vh;background:#000;flex-direction:column;'>" +
+        "<div style='color:#cc0000;font-size:32px;font-weight:bold;text-align:center;margin-bottom:20px;'>YOU HAVE WON</div>" +
+        "<div style='color:#ff6666;font-size:16px;max-width:600px;text-align:center;line-height:2;'>" +
+        "The ritual is complete.<br><br>" +
+        "After everything, you've finally let go of who you used to be.<br><br>" +
+        "<span style='color:#888;font-size:12px;'>Survived " + age + " years · Accumulated " + Math.floor(evil).toLocaleString() + " evil</span>" +
+        "</div>" +
+        "<div style='margin-top:40px'><button onclick='location.href=location.href' style='background:#3a0000;color:#ff4444;border:1px solid #880000;padding:10px 24px;font-size:14px;cursor:pointer;border-radius:4px;'>Begin Again (Hard Reset)</button></div>" +
+        "</div>";
+}
+function rebirthReset() {
+    setTab(document.getElementById("jobTabButton"), "jobs");
+    gameData.coins = 0; gameData.days = 365 * 14;
+    gameData.currentJob = gameData.taskData["Beggar"];
+    gameData.currentSkill = gameData.taskData["Concentration"];
+    gameData.currentProperty = gameData.itemData["Homeless"];
+    gameData.currentMisc = [];
+    for (var taskName in gameData.taskData) {
+        var task = gameData.taskData[taskName];
+        if (task.level > task.maxLevel) task.maxLevel = task.level;
+        task.level = 0; task.xp = 0;
+    }
+    for (var key in gameData.requirements) {
+        var req = gameData.requirements[key];
+        if (req.completed && permanentUnlocks.includes(key)) continue;
+        req.completed = false;
+    }
+}
+
+function getLifespan() {
+    var im = gameData.taskData["Immortality"].getEffect();
+    var si = gameData.taskData["Super immortality"].getEffect();
+    var en = gameData.taskData["Endurance"].getEffect();
+    var nv = gameData.taskData["Necrotic Vitality"] ? gameData.taskData["Necrotic Vitality"].getEffect() : 1;
+    var vp = gameData.taskData["Void Pact"] ? gameData.taskData["Void Pact"].getEffect() : 1;
+    var le = gameData.taskData["Lich's Essence"] ? gameData.taskData["Lich's Essence"].getEffect() : 1;
+    var bonusDays = gameData.permanentLifespanBonus * 365;
+    if (!isFinite(bonusDays) || bonusDays < 0) bonusDays = 0;
+    var multipliers = [im, si, en, nv, vp, le];
+    for (var i = 0; i < multipliers.length; i++) {
+        if (!isFinite(multipliers[i]) || multipliers[i] <= 0) multipliers[i] = 1;
+    }
+    var lifespan = (baseLifespan + bonusDays) * multipliers[0] * multipliers[1] * multipliers[2] * multipliers[3] * multipliers[4] * multipliers[5];
+    // Safety net: never let a corrupted save produce a lifespan shorter than the base 70 years.
+    if (!isFinite(lifespan) || lifespan < baseLifespan) lifespan = baseLifespan;
+    return lifespan;
+}
+function isAlive() {
+    var alive = gameData.days < getLifespan();
+    var dt = document.getElementById("deathText");
+    if (!alive) { gameData.days = getLifespan(); dt.classList.remove("hidden"); }
+    else dt.classList.add("hidden");
+    return alive;
+}
+
+function getCategoryFromEntityName(categoryType, entityName) {
+    for (var cn in categoryType) { if (categoryType[cn].includes(entityName)) return categoryType[cn]; }
+}
+function getNextEntity(data, categoryType, entityName) {
+    var category = getCategoryFromEntityName(categoryType, entityName);
+    if (!category) return null;
+    var nextIndex = category.indexOf(entityName) + 1;
+    if (nextIndex > category.length - 1) return null;
+    return data[category[nextIndex]];
+}
+function autoPromote() {
+    if (!autoPromoteElement.checked) return;
+    var nextEntity = getNextEntity(gameData.taskData, jobCategories, gameData.currentJob.name);
+    if (!nextEntity) return;
+    var req = gameData.requirements[nextEntity.name];
+    if (req && req.isCompleted()) gameData.currentJob = nextEntity;
+}
+function checkSkillSkipped(skill) {
+    var row = document.getElementById("row " + skill.name);
+    if (!row) return false;
+    var cb = row.querySelector('.checkbox');
+    return cb ? cb.checked : false;
+}
+function setSkillWithLowestMaxXp() {
+    var enabledSkills = [];
+    for (var skillName in gameData.taskData) {
+        var skill = gameData.taskData[skillName];
+        if (!(skill instanceof Skill)) continue;
+        var req = gameData.requirements[skillName] || gameData.requirements["Concentration"];
+        if (req && req.isCompleted() && !checkSkillSkipped(skill)) enabledSkills.push(skill);
+    }
+    if (enabledSkills.length === 0) { skillWithLowestMaxXp = gameData.taskData["Concentration"]; return; }
+    enabledSkills.sort(function(a, b) { return a.getMaxXp() / a.getXpGain() - b.getMaxXp() / b.getXpGain(); });
+    skillWithLowestMaxXp = enabledSkills[0];
+}
+function autoLearn() {
+    if (!autoLearnElement.checked || !skillWithLowestMaxXp) return;
+    gameData.currentSkill = skillWithLowestMaxXp;
+}
+
+function saveGameData() {
+    if (gameData.resetInProgress) return;
+    saveTownState();
+    localStorage.setItem("pkEnhancedSave", JSON.stringify(gameData));
+}
+function loadGameData() {
+    var saved = JSON.parse(localStorage.getItem("pkEnhancedSave"));
+    if (saved !== null && saved.saveVersion !== 2) {
+        localStorage.removeItem("pkEnhancedSave");
+        saved = null;
+    }
+    if (saved !== null) {
+        replaceSaveDict(gameData, saved);
+        replaceSaveDict(gameData.requirements, saved.requirements);
+        replaceSaveDict(gameData.taskData, saved.taskData);
+        replaceSaveDict(gameData.itemData, saved.itemData);
+        gameData = saved;
+    }
+    loadTownState();
+    gameData.rawTownIncome = updateRawTownIncome();
+    if (!gameData.speedMultiplier) gameData.speedMultiplier = 1;
+    assignMethods();
+}
+function replaceSaveDict(dict, saveDict) {
+    for (var key in dict) { if (!(key in saveDict)) saveDict[key] = dict[key]; }
+    for (var key in saveDict) { if (!(key in dict)) delete saveDict[key]; }
+}
+function assignMethods() {
+    for (var key in gameData.taskData) {
+        var task = gameData.taskData[key];
+        if (task.baseData && task.baseData.income !== undefined) {
+            task.baseData = jobBaseData[task.name] || task.baseData;
+            task = Object.assign(new Job(task.baseData), task);
+        } else {
+            task.baseData = skillBaseData[task.name] || task.baseData;
+            task = Object.assign(new Skill(task.baseData), task);
+        }
+        gameData.taskData[key] = task;
+    }
+    for (var key in gameData.itemData) {
+        var item = gameData.itemData[key];
+        item.baseData = itemBaseData[item.name] || item.baseData;
+        item = Object.assign(new Item(item.baseData), item);
+        gameData.itemData[key] = item;
+    }
+    for (var key in gameData.requirements) {
+        var req = gameData.requirements[key];
+        var tReq = tempData["requirements"][key];
+        if (!tReq) continue;
+        if (req.type === "task") req = Object.assign(new TaskRequirement(tReq.elements, tReq.requirements), req);
+        else if (req.type === "coins") req = Object.assign(new CoinRequirement(tReq.elements, tReq.requirements), req);
+        else if (req.type === "age") req = Object.assign(new AgeRequirement(tReq.elements, tReq.requirements), req);
+        else if (req.type === "evil") {
+            if (tReq instanceof EvilAndTaskRequirement) req = Object.assign(new EvilAndTaskRequirement(tReq.elements, tReq.evilReq, tReq.requirements), req);
+            else req = Object.assign(new EvilRequirement(tReq.elements, tReq.requirements), req);
+        }
+        req.elements = tReq.elements;
+        req.requirements = tReq.requirements;
+        gameData.requirements[key] = req;
+    }
+    gameData.currentJob = gameData.taskData[gameData.currentJob.name] || gameData.taskData["Beggar"];
+    gameData.currentSkill = gameData.taskData[gameData.currentSkill.name] || gameData.taskData["Concentration"];
+    gameData.currentProperty = gameData.itemData[gameData.currentProperty.name] || gameData.itemData["Homeless"];
+    var newMisc = [];
+    for (var m of gameData.currentMisc) { var item = gameData.itemData[m.name]; if (item) newMisc.push(item); }
+    gameData.currentMisc = newMisc;
+}
+
+function exportGameData() { document.getElementById("importExportBox").value = window.btoa(JSON.stringify(gameData)); }
+function importGameData() {
+    try {
+        gameData = JSON.parse(window.atob(document.getElementById("importExportBox").value));
+        assignMethods();
+    } catch(e) { alert("Invalid save data."); }
+}
+function resetGameData() {
+    var btn = document.getElementById("resetButton");
+    if (btn && !btn.classList.contains("confirming")) {
+        btn.classList.add("confirming");
+        btn.textContent = "Tap again to confirm";
+        if (btn._resetTimeout) clearTimeout(btn._resetTimeout);
+        btn._resetTimeout = setTimeout(function() {
+            btn.classList.remove("confirming");
+            btn.textContent = "Reset";
+        }, 4000);
+        return;
+    }
+    gameData.resetInProgress = true;
+    localStorage.removeItem("pkEnhancedSave");
+    setTimeout(function() {
+        localStorage.removeItem("pkEnhancedSave");
+        location.href = location.href;
+    }, 0);
+}
+
+function updateUI() {
+    updateTaskRows();
+    updateItemRows();
+    updateRequiredRows(gameData.taskData, jobCategories);
+    updateRequiredRows(gameData.taskData, skillCategories);
+    updateRequiredRows(gameData.itemData, itemCategories);
+    updateHeaderRows(jobCategories);
+    updateHeaderRows(skillCategories);
+    updateQuickTaskDisplay("job");
+    updateQuickTaskDisplay("skill");
+    hideEntities();
+    updateText();
+}
+
+function update() {
+    increaseDays();
+    autoPromote();
+    autoLearn();
+    doCurrentTask(gameData.currentJob);
+    doCurrentTask(gameData.currentSkill);
+    applyExpenses();
+    updateUI();
+}
+
+// ==================== INIT ====================
+const permanentUnlocks = ["Scheduling","Shop","Automation","Quick task display"];
+
+createData(gameData.taskData, jobBaseData);
+createData(gameData.taskData, skillBaseData);
+createData(gameData.itemData, itemBaseData);
+
+createAllRows(jobCategories, "jobTable");
+createAllRows(skillCategories, "skillTable");
+createAllRows(itemCategories, "itemTable");
+
+gameData.currentJob = gameData.taskData["Beggar"];
+gameData.currentSkill = gameData.taskData["Concentration"];
+gameData.currentProperty = gameData.itemData["Homeless"];
+gameData.currentMisc = [];
+
+gameData.requirements = {
+    // Category unlocks
+    // Arcane Association section always visible - individual jobs locked by their own requirements
+    // Ministry of Magic section is always visible - individual jobs have their own requirements
+    "Nobility": new TaskRequirement(getElementsByClass("Nobility"), [{task:"Elite knight", requirement:10}]),
+    "Dark magic": new EvilRequirement(getElementsByClass("Dark magic"), [{requirement:1}]),
+    "Shop": new CoinRequirement([document.getElementById("shopTabButton")], [{requirement: gameData.itemData["Tent"].getExpense() * 50}]),
+    "Rebirth tab": new AgeRequirement([document.getElementById("rebirthTabButton")], [{requirement:25}]),
+    "Rebirth note 1": new AgeRequirement([document.getElementById("rebirthNote1")], [{requirement:45}]),
+    "Rebirth note 2": new AgeRequirement([document.getElementById("rebirthNote2")], [{requirement:65}]),
+    "Rebirth hint 200": new AgeRequirement([document.getElementById("rebirthHint200")], [{requirement:65}]),
+    "Rebirth note 3": new AgeRequirement([document.getElementById("rebirthNote3")], [{requirement:200}]),
+    "Rebirth hint 350": new AgeRequirement([document.getElementById("rebirthHint350")], [{requirement:200}]),
+    "Rebirth note 4": new AgeRequirement([document.getElementById("rebirthNote4")], [{requirement:350}]),
+    "Rebirth hint 500": new AgeRequirement([document.getElementById("rebirthHint500")], [{requirement:350}]),
+    "Rebirth note 5": new AgeRequirement([document.getElementById("rebirthNote5")], [{requirement:500}]),
+    "Rebirth note dark": new AgeRequirement([document.getElementById("rebirthNoteDark")], [{requirement:750}]),
+    "Rebirth note 6": new AgeRequirement([document.getElementById("rebirthNote6")], [{requirement:500}]),
+    "Rebirth hint 750": new AgeRequirement([document.getElementById("rebirthHint750")], [{requirement:500}]),
+    "Rebirth note 7": new AgeRequirement([document.getElementById("rebirthNote7")], [{requirement:750}]),
+    "Rebirth hint 1000": new AgeRequirement([document.getElementById("rebirthHint1000")], [{requirement:750}]),
+    "Rebirth note 8": new AgeRequirement([document.getElementById("rebirthNote8")], [{requirement:1000}]),
+    "Dark Ritual note": new EvilRequirement([document.getElementById("rebirthNoteDarkRitual")], [{requirement:10000}]),
+    "Evil info": new EvilRequirement([document.getElementById("evilInfo")], [{requirement:1}]),
+    "Automation": new AgeRequirement([document.getElementById("automation")], [{requirement:20}]),
+    "Quick task display": new AgeRequirement([document.getElementById("quickTaskDisplay")], [{requirement:20}]),
+
+    // Common work
+    "Beggar":     new TaskRequirement([getTaskElement("Beggar")],     []),
+    "Farmer":     new TaskRequirement([getTaskElement("Farmer")],     [{task:"Beggar", requirement:10},{task:"Productivity", requirement:5}]),
+    "Fisherman":  new TaskRequirement([getTaskElement("Fisherman")],  [{task:"Farmer", requirement:10},{task:"Concentration", requirement:10}]),
+    "Miner":      new TaskRequirement([getTaskElement("Miner")],      [{task:"Strength", requirement:10},{task:"Fisherman", requirement:10}]),
+    "Blacksmith": new TaskRequirement([getTaskElement("Blacksmith")], [{task:"Strength", requirement:30},{task:"Miner", requirement:10},{task:"Productivity", requirement:20}]),
+    "Merchant":   new TaskRequirement([getTaskElement("Merchant")],   [{task:"Bargaining", requirement:50},{task:"Blacksmith", requirement:10},{task:"Concentration", requirement:40}]),
+    "Innkeeper":  new TaskRequirement([getTaskElement("Innkeeper")],  [{task:"Merchant", requirement:30},{task:"Bargaining", requirement:80}]),
+    "Shipwright": new TaskRequirement([getTaskElement("Shipwright")], [{task:"Miner", requirement:50},{task:"Merchant", requirement:50},{task:"Strength", requirement:60}]),
+
+    // Military
+    "Squire":           new TaskRequirement([getTaskElement("Squire")],           [{task:"Strength", requirement:5}]),
+    "Footman":          new TaskRequirement([getTaskElement("Footman")],          [{task:"Strength", requirement:20},{task:"Squire", requirement:10}]),
+    "Veteran footman":  new TaskRequirement([getTaskElement("Veteran footman")],  [{task:"Battle tactics", requirement:40},{task:"Footman", requirement:10},{task:"Strength", requirement:50}]),
+    "Knight":           new TaskRequirement([getTaskElement("Knight")],           [{task:"Strength", requirement:100},{task:"Veteran footman", requirement:10},{task:"Battle tactics", requirement:80}]),
+    "Veteran knight":   new TaskRequirement([getTaskElement("Veteran knight")],   [{task:"Battle tactics", requirement:150},{task:"Knight", requirement:10},{task:"Muscle memory", requirement:50}]),
+    "Elite knight":     new TaskRequirement([getTaskElement("Elite knight")],     [{task:"Strength", requirement:300},{task:"Veteran knight", requirement:10},{task:"Endurance", requirement:100}]),
+    "Holy knight":      new TaskRequirement([getTaskElement("Holy knight")],      [{task:"Mana control", requirement:500},{task:"Elite knight", requirement:10},{task:"Meditation", requirement:300}]),
+    "Legendary knight": new TaskRequirement([getTaskElement("Legendary knight")], [{task:"Mana control", requirement:1000},{task:"Battle tactics", requirement:1000},{task:"Holy knight", requirement:10},{task:"Muscle memory", requirement:500}]),
+
+    // Arcane Association
+    "Student":              new TaskRequirement([getTaskElement("Student")],              [{task:"Concentration", requirement:50},{task:"Meditation", requirement:50},{task:"Mana control", requirement:100}]),
+    "Apprentice mage":      new TaskRequirement([getTaskElement("Apprentice mage")],      [{task:"Mana control", requirement:400},{task:"Student", requirement:10},{task:"Concentration", requirement:300}]),
+    "Mage":                 new TaskRequirement([getTaskElement("Mage")],                 [{task:"Mana control", requirement:700},{task:"Apprentice mage", requirement:10},{task:"Meditation", requirement:400}]),
+    "Wizard":               new TaskRequirement([getTaskElement("Wizard")],               [{task:"Mana control", requirement:1000},{task:"Mage", requirement:10},{task:"Unusual Insight", requirement:200}]),
+    "Master wizard":        new TaskRequirement([getTaskElement("Master wizard")],        [{task:"Mana control", requirement:500},{task:"Wizard", requirement:5},{task:"Unusual Insight", requirement:100}]),
+    "Chairman":             new TaskRequirement([getTaskElement("Chairman")],             [{task:"Mana control", requirement:2000},{task:"Master wizard", requirement:10},{task:"Rhetoric", requirement:500}]),
+    "Illustrious Chairman": new TaskRequirement([getTaskElement("Illustrious Chairman")], [{task:"Mana control", requirement:3000},{task:"Chairman", requirement:1000},{task:"Magical Engineering", requirement:200}]),
+
+    // Ministry of Magic
+    "Auror Trainee":   new TaskRequirement([getTaskElement("Auror Trainee")],   [{task:"Master wizard", requirement:5},{task:"Mana control", requirement:500}]),
+    "Junior Auror":    new TaskRequirement([getTaskElement("Junior Auror")],    [{task:"Auror Trainee", requirement:10},{task:"Spell Mastery", requirement:100}]),
+    "Senior Auror":    new TaskRequirement([getTaskElement("Senior Auror")],    [{task:"Junior Auror", requirement:50},{task:"Occlumency", requirement:200}]),
+    "Head Auror":      new TaskRequirement([getTaskElement("Head Auror")],      [{task:"Senior Auror", requirement:100},{task:"Legilimency", requirement:400}]),
+    "Unspeakable":     new TaskRequirement([getTaskElement("Unspeakable")],     [{task:"Head Auror", requirement:200},{task:"Mana control", requirement:1000}]),
+    "Department Head": new TaskRequirement([getTaskElement("Department Head")], [{task:"Unspeakable", requirement:500},{task:"Rhetoric", requirement:500}]),
+    "Minister of Magic":new TaskRequirement([getTaskElement("Minister of Magic")],[{task:"Department Head", requirement:1000},{task:"Rhetoric", requirement:1000},{task:"Legilimency", requirement:1000}]),
+
+    // Order of Discovery
+
+    // Nobility
+    "Baronet":           new TaskRequirement([getTaskElement("Baronet")],           [{task:"Elite knight", requirement:10},{task:"Rhetoric", requirement:50}]),
+    "Baron":             new TaskRequirement([getTaskElement("Baron")],             [{task:"Baronet", requirement:10},{task:"Bargaining", requirement:100}]),
+    "Vice Count":        new TaskRequirement([getTaskElement("Vice Count")],        [{task:"Baron", requirement:10},{task:"Rhetoric", requirement:150}]),
+    "Count":             new TaskRequirement([getTaskElement("Count")],             [{task:"Vice Count", requirement:10},{task:"Meditation", requirement:200}]),
+    "Duke":              new TaskRequirement([getTaskElement("Duke")],              [{task:"Count", requirement:10},{task:"Rhetoric", requirement:300}]),
+    "Grand Duke":        new TaskRequirement([getTaskElement("Grand Duke")],        [{task:"Duke", requirement:10},{task:"Bargaining", requirement:300}]),
+    "Arch Duke":         new TaskRequirement([getTaskElement("Arch Duke")],         [{task:"Grand Duke", requirement:10},{task:"Rhetoric", requirement:500}]),
+    "Lord":              new TaskRequirement([getTaskElement("Lord")],              [{task:"Arch Duke", requirement:10},{task:"Unusual Insight", requirement:400}]),
+    "High Lord":         new TaskRequirement([getTaskElement("High Lord")],         [{task:"Lord", requirement:10},{task:"Rhetoric", requirement:800}]),
+    "King":              new TaskRequirement([getTaskElement("King")],              [{task:"High Lord", requirement:10},{task:"Meditation", requirement:600}]),
+    "High King":         new TaskRequirement([getTaskElement("High King")],         [{task:"King", requirement:10},{task:"Rhetoric", requirement:1200}]),
+    "Emperor of Mankind":new TaskRequirement([getTaskElement("Emperor of Mankind")],[{task:"High King", requirement:10},{task:"Unusual Insight", requirement:1000},{task:"Rhetoric", requirement:1500}]),
+
+    // Fundamentals
+    "Concentration": new TaskRequirement([getTaskElement("Concentration")], []),
+    "Productivity":  new TaskRequirement([getTaskElement("Productivity")],  [{task:"Concentration", requirement:5}]),
+    "Bargaining":    new TaskRequirement([getTaskElement("Bargaining")],    [{task:"Concentration", requirement:20},{task:"Productivity", requirement:10}]),
+    "Meditation":    new TaskRequirement([getTaskElement("Meditation")],    [{task:"Concentration", requirement:30},{task:"Productivity", requirement:20}]),
+
+    // Combat
+    "Strength":       new TaskRequirement([getTaskElement("Strength")],       []),
+    "Battle tactics": new TaskRequirement([getTaskElement("Battle tactics")], [{task:"Concentration", requirement:20},{task:"Strength", requirement:10}]),
+    "Muscle memory":  new TaskRequirement([getTaskElement("Muscle memory")],  [{task:"Concentration", requirement:30},{task:"Strength", requirement:30},{task:"Battle tactics", requirement:20}]),
+    "Endurance":      new TaskRequirement([getTaskElement("Endurance")],      [{task:"Strength", requirement:100},{task:"Muscle memory", requirement:50}]),
+
+    // Magic
+    "Mana control":      new TaskRequirement([getTaskElement("Mana control")],      [{task:"Concentration", requirement:200},{task:"Meditation", requirement:200}]),
+    "Immortality":       new TaskRequirement([getTaskElement("Immortality")],       [{task:"Apprentice mage", requirement:10},{task:"Mana control", requirement:500}]),
+    "Super immortality": new TaskRequirement([getTaskElement("Super immortality")], [{task:"Chairman", requirement:1000},{task:"Immortality", requirement:500}]),
+    "Spell Mastery":     new TaskRequirement([getTaskElement("Spell Mastery")],     [{task:"Mage", requirement:10},{task:"Mana control", requirement:100},{task:"Meditation", requirement:100}]),
+    "Occlumency":        new TaskRequirement([getTaskElement("Occlumency")],        [{task:"Spell Mastery", requirement:50},{task:"Meditation", requirement:200}]),
+    "Legilimency":       new TaskRequirement([getTaskElement("Legilimency")],       [{task:"Occlumency", requirement:100},{task:"Unusual Insight", requirement:200}]),
+
+    // Mind
+    "Unusual Insight":    new TaskRequirement([getTaskElement("Unusual Insight")],    [{task:"Meditation", requirement:900},{task:"Concentration", requirement:900}]),
+    "Trade Psychology":   new TaskRequirement([getTaskElement("Trade Psychology")],   [{task:"Unusual Insight", requirement:900},{task:"Probation", requirement:40},{task:"Bargaining", requirement:400}]),
+    "Flow":               new TaskRequirement([getTaskElement("Flow")],               [{task:"Unusual Insight", requirement:1500},{task:"Probation", requirement:40},{task:"Meditation", requirement:1000}]),
+    "Magical Engineering":new TaskRequirement([getTaskElement("Magical Engineering")],[{task:"Chairman", requirement:1},{task:"Mana control", requirement:2000}]),
+    "Scales Of Thought":  new TaskRequirement([getTaskElement("Scales Of Thought")],  [{task:"Chairman", requirement:15},{task:"Unusual Insight", requirement:500}]),
+    "Magical Biology":    new TaskRequirement([getTaskElement("Magical Biology")],    [{task:"Chairman", requirement:150},{task:"Magical Engineering", requirement:100}]),
+    "Rhetoric":           new TaskRequirement([getTaskElement("Rhetoric")],           [{task:"Bargaining", requirement:200},{task:"Meditation", requirement:200},{task:"Concentration", requirement:300}]),
+
+    // Dark magic
+    "Dark influence":  new EvilRequirement([getTaskElement("Dark influence")],  [{requirement:1}]),
+    "Evil control":    new EvilRequirement([getTaskElement("Evil control")],    [{requirement:1}]),
+    "Intimidation":    new EvilRequirement([getTaskElement("Intimidation")],    [{requirement:1}]),
+    "Demon training":  new EvilAndTaskRequirement([getTaskElement("Demon training")],  25,   [{task:"Dark influence", requirement:10},{task:"Evil control", requirement:10}]),
+    "Blood meditation":new EvilAndTaskRequirement([getTaskElement("Blood meditation")],75,   [{task:"Demon training", requirement:20},{task:"Intimidation", requirement:20}]),
+    "Demon's wealth":  new EvilAndTaskRequirement([getTaskElement("Demon's wealth")],  500,  [{task:"Blood meditation", requirement:50},{task:"Demon training", requirement:50}]),
+    "Soul Leech":      new EvilAndTaskRequirement([getTaskElement("Soul Leech")],      150,  [{task:"Dark influence", requirement:30},{task:"Blood meditation", requirement:20}]),
+    "Necrotic Vitality":new EvilAndTaskRequirement([getTaskElement("Necrotic Vitality")],300,[{task:"Soul Leech", requirement:30},{task:"Blood meditation", requirement:50}]),
+    "Void Pact":       new EvilAndTaskRequirement([getTaskElement("Void Pact")],       800,  [{task:"Necrotic Vitality", requirement:100},{task:"Demon training", requirement:100}]),
+    "Lich's Essence":  new EvilAndTaskRequirement([getTaskElement("Lich's Essence")],  2000, [{task:"Void Pact", requirement:200},{task:"Necrotic Vitality", requirement:300}]),
+    "Eternal Hunger":  new EvilAndTaskRequirement([getTaskElement("Eternal Hunger")],  500,  [{task:"Demon's wealth", requirement:100},{task:"Soul Leech", requirement:50}]),
+    "Shadow Step":     new EvilAndTaskRequirement([getTaskElement("Shadow Step")],     200,  [{task:"Intimidation", requirement:50},{task:"Dark influence", requirement:50}]),
+
+    // Dark Magic jobs
+    "Cultist":          new EvilAndTaskRequirement([getTaskElement("Cultist")],          1, [{task:"Auror Trainee", requirement:10}]),
+    "Dark Mage":        new EvilAndTaskRequirement([getTaskElement("Dark Mage")],        50,    [{task:"Cultist", requirement:10},{task:"Evil control", requirement:10}]),
+    "Necromancer":      new EvilAndTaskRequirement([getTaskElement("Necromancer")],      200,   [{task:"Dark Mage", requirement:10},{task:"Demon training", requirement:20}]),
+    "Blood Priest":     new EvilAndTaskRequirement([getTaskElement("Blood Priest")],     500,   [{task:"Necromancer", requirement:10},{task:"Blood meditation", requirement:30}]),
+    "Lich Lord":        new EvilAndTaskRequirement([getTaskElement("Lich Lord")],        1000,  [{task:"Blood Priest", requirement:10},{task:"Necrotic Vitality", requirement:50}]),
+    "Shadow Sovereign": new EvilAndTaskRequirement([getTaskElement("Shadow Sovereign")], 2500,  [{task:"Lich Lord", requirement:10},{task:"Shadow Step", requirement:100},{task:"Void Pact", requirement:50}]),
+    "Demon King":       new EvilAndTaskRequirement([getTaskElement("Demon King")],       5000,  [{task:"Shadow Sovereign", requirement:10},{task:"Demon's wealth", requirement:200},{task:"Intimidation", requirement:200}]),
+    "Void Archon":      new EvilAndTaskRequirement([getTaskElement("Void Archon")],      10000, [{task:"Demon King", requirement:10},{task:"Lich's Essence", requirement:100},{task:"Void Pact", requirement:200}]),
+    "Eternal Corruptor":new EvilAndTaskRequirement([getTaskElement("Eternal Corruptor")],25000, [{task:"Void Archon", requirement:10},{task:"Lich's Essence", requirement:400},{task:"Soul Leech", requirement:500}]),
+
+    // Properties
+    "Homeless":    new CoinRequirement([getItemElement("Homeless")],    [{requirement:0}]),
+    "Tent":        new CoinRequirement([getItemElement("Tent")],        [{requirement:0}]),
+    "Wooden hut":  new CoinRequirement([getItemElement("Wooden hut")],  [{requirement: gameData.itemData["Wooden hut"].getExpense() * 100}]),
+    "Cottage":     new CoinRequirement([getItemElement("Cottage")],     [{requirement: gameData.itemData["Cottage"].getExpense() * 100}]),
+    "House":       new CoinRequirement([getItemElement("House")],       [{requirement: gameData.itemData["House"].getExpense() * 100}]),
+    "Large house": new CoinRequirement([getItemElement("Large house")], [{requirement: gameData.itemData["Large house"].getExpense() * 100}]),
+    "Small Manor": new CoinRequirement([getItemElement("Small Manor")], [{requirement: gameData.itemData["Small Manor"].getExpense() * 100}]),
+    "Small palace":new CoinRequirement([getItemElement("Small palace")],[{requirement: gameData.itemData["Small palace"].getExpense() * 100}]),
+    "Grand palace":new CoinRequirement([getItemElement("Grand palace")],[{requirement: gameData.itemData["Grand palace"].getExpense() * 100}]),
+
+    // Misc items
+    "Book":            new CoinRequirement([getItemElement("Book")],            [{requirement:0}]),
+    "Rag Clothing":    new CoinRequirement([getItemElement("Rag Clothing")],    [{requirement:10}]),
+    "Dumbbells":       new CoinRequirement([getItemElement("Dumbbells")],       [{requirement: gameData.itemData["Dumbbells"].getExpense() * 100}]),
+    "Personal squire": new CoinRequirement([getItemElement("Personal squire")], [{requirement: gameData.itemData["Personal squire"].getExpense() * 100}]),
+    "Steel longsword": new CoinRequirement([getItemElement("Steel longsword")], [{requirement: gameData.itemData["Steel longsword"].getExpense() * 100}]),
+    "Butler":          new CoinRequirement([getItemElement("Butler")],          [{requirement: gameData.itemData["Butler"].getExpense() * 100}]),
+    "Sapphire charm":  new CoinRequirement([getItemElement("Sapphire charm")],  [{requirement: gameData.itemData["Sapphire charm"].getExpense() * 100}]),
+    "Study desk":      new CoinRequirement([getItemElement("Study desk")],      [{requirement: gameData.itemData["Study desk"].getExpense() * 100}]),
+    "Library":         new CoinRequirement([getItemElement("Library")],         [{requirement: gameData.itemData["Library"].getExpense() * 100}]),
+    "Small Field":     new TaskRequirement([getItemElement("Small Field")],     [{task:"Farmer", requirement:25}]),
+    "Basic Farm Tools":new TaskRequirement([getItemElement("Basic Farm Tools")],[{task:"Farmer", requirement:10}]),
+    "Cheap Fishing Rod":new TaskRequirement([getItemElement("Cheap Fishing Rod")],[{task:"Fisherman", requirement:10}]),
+    "Miner's Lantern": new TaskRequirement([getItemElement("Miner's Lantern")], [{task:"Miner", requirement:10}]),
+    "Crappy Anvil":    new TaskRequirement([getItemElement("Crappy Anvil")],    [{task:"Blacksmith", requirement:10}]),
+    "Breech Bellows":  new TaskRequirement([getItemElement("Breech Bellows")],  [{task:"Blacksmith", requirement:25}]),
+    "Pack Horse":      new TaskRequirement([getItemElement("Pack Horse")],      [{task:"Merchant", requirement:10}]),
+    "Small Shop":      new TaskRequirement([getItemElement("Small Shop")],      [{task:"Merchant", requirement:75}]),
+    "Weapon Outlet":   new TaskRequirement([getItemElement("Weapon Outlet")],   [{task:"Merchant", requirement:200}]),
+    "Ox-driven Plow":  new TaskRequirement([getItemElement("Ox-driven Plow")],  [{task:"Farmer", requirement:75}]),
+    "Livestock-derived Fertilizer": new TaskRequirement([getItemElement("Livestock-derived Fertilizer")],[{task:"Farmer", requirement:85}]),
+    // Ministry items
+    "Ministry Badge":    new TaskRequirement([getItemElement("Ministry Badge")],    [{task:"Auror Trainee", requirement:10}]),
+    "Enchanted Quill":   new TaskRequirement([getItemElement("Enchanted Quill")],   [{task:"Junior Auror", requirement:10}]),
+    "Time-Turner":       new TaskRequirement([getItemElement("Time-Turner")],       [{task:"Senior Auror", requirement:10}]),
+    "Invisibility Cloak":new TaskRequirement([getItemElement("Invisibility Cloak")],[{task:"Unspeakable", requirement:10}]),
+    "Elder Wand":        new CoinRequirement([getItemElement("Elder Wand")],        [{requirement: gameData.itemData["Elder Wand"].getExpense() * 100}]),
+    // New magic items
+    "Mana Crystal":           new TaskRequirement([getItemElement("Mana Crystal")],           [{task:"Student", requirement:5}]),
+    "Crystal Ball":           new TaskRequirement([getItemElement("Crystal Ball")],           [{task:"Mage", requirement:10}]),
+    "Runic Amulet":           new TaskRequirement([getItemElement("Runic Amulet")],           [{task:"Apprentice mage", requirement:30}]),
+    "Arcane Tome":            new TaskRequirement([getItemElement("Arcane Tome")],            [{task:"Wizard", requirement:10}]),
+    "Enchanted Mirror":       new TaskRequirement([getItemElement("Enchanted Mirror")],       [{task:"Master wizard", requirement:10}]),
+    "Philosopher's Stone":    new TaskRequirement([getItemElement("Philosopher's Stone")],    [{task:"Chairman", requirement:50}]),
+    "Staff of the Ancients":  new TaskRequirement([getItemElement("Staff of the Ancients")],  [{task:"Illustrious Chairman", requirement:10}]),
+    // New equipment items
+    "Iron Shield":         new TaskRequirement([getItemElement("Iron Shield")],         [{task:"Squire", requirement:5}]),
+    "Chain Mail":          new TaskRequirement([getItemElement("Chain Mail")],          [{task:"Footman", requirement:10}]),
+    "Knight's Helm":       new TaskRequirement([getItemElement("Knight's Helm")],       [{task:"Knight", requirement:10}]),
+    "Warhorse":            new TaskRequirement([getItemElement("Warhorse")],            [{task:"Veteran knight", requirement:10}]),
+    "Merchant's Ledger":   new TaskRequirement([getItemElement("Merchant's Ledger")],   [{task:"Merchant", requirement:5}]),
+    "Compass":             new TaskRequirement([getItemElement("Compass")],             [{task:"Merchant", requirement:30}]),
+    "Alchemist's Kit":     new CoinRequirement([getItemElement("Alchemist's Kit")],     [{requirement: gameData.itemData["Alchemist's Kit"].getExpense() * 100}]),
+    "Scholar's Robes":     new CoinRequirement([getItemElement("Scholar's Robes")],     [{requirement: gameData.itemData["Scholar's Robes"].getExpense() * 100}]),
+    // New properties
+    "Cave":            new CoinRequirement([getItemElement("Cave")],            [{requirement:0}]),
+    "Farmstead":       new CoinRequirement([getItemElement("Farmstead")],       [{requirement: gameData.itemData["Farmstead"].getExpense() * 100}]),
+    "Wizard's Tower":  new CoinRequirement([getItemElement("Wizard's Tower")],  [{requirement: gameData.itemData["Wizard's Tower"].getExpense() * 100}]),
+    // Dark items
+    "Soul Shard":       new EvilAndTaskRequirement([getItemElement("Soul Shard")],       10,   [{task:"Cultist", requirement:1}]),
+    "Bone Totem":       new EvilAndTaskRequirement([getItemElement("Bone Totem")],       25,   [{task:"Cultist", requirement:5},{task:"Dark Mage", requirement:1}]),
+    "Shadow Cloak":     new EvilAndTaskRequirement([getItemElement("Shadow Cloak")],     50,   [{task:"Dark Mage", requirement:5}]),
+    "Cursed Grimoire":  new EvilAndTaskRequirement([getItemElement("Cursed Grimoire")],  100,  [{task:"Necromancer", requirement:5}]),
+    "Blood Chalice":    new EvilAndTaskRequirement([getItemElement("Blood Chalice")],    200,  [{task:"Blood Priest", requirement:5}]),
+    "Lich's Phylactery":new EvilAndTaskRequirement([getItemElement("Lich's Phylactery")],500,  [{task:"Lich Lord", requirement:5}]),
+    "Void Sceptre":     new EvilAndTaskRequirement([getItemElement("Void Sceptre")],     1000, [{task:"Void Archon", requirement:5}]),
+};
+
+tempData["requirements"] = {};
+for (var key in gameData.requirements) { tempData["requirements"][key] = gameData.requirements[key]; }
+
+loadGameData();
+setCustomEffects();
+addMultipliers();
+
+// Register town building click handlers on progress-bar divs
+(function() {
+    for (var key in o_townBuildingsContainer) {
+        (function(ob) {
+            var el = document.getElementById(ob.id);
+            if (el) el.addEventListener("click", function(e) { ob.handleClick.call(ob, e); });
+        })(o_townBuildingsContainer[key]);
+    }
+})();
+
+// Style town section header rows
+applyTownHeaderStyles();
+
+// Dismiss tooltip on outside click
+document.addEventListener("click", function(e) {
+    if (e.target.closest && e.target.closest(".progressBar")) return;
+    document.querySelectorAll(".tooltipText.show").forEach(function(t) { t.classList.remove("show"); });
+});
+
+// Restore speed buttons UI (clamp 100x if under age 200)
+if (gameData.speedMultiplier === 100 && daysToYears(gameData.days) < 200) gameData.speedMultiplier = 1;
+if (gameData.speedMultiplier === 250 && daysToYears(gameData.days) < 500) gameData.speedMultiplier = 1;
+setSpeedMultiplier(gameData.speedMultiplier || 1);
+
+setTab(document.getElementById("jobTabButton"), "jobs");
+update();
+setInterval(update, 1000 / updateSpeed);
+setInterval(saveGameData, 3000);
+setInterval(setSkillWithLowestMaxXp, 1000);
+
+// ==================== ADMIN PANEL ====================
+var ADMIN_CHECK = adminHash("1235656");
+var adminSelectedJob = "";
+
+function adminHash(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) { h = (Math.imul(31, h) + str.charCodeAt(i)) | 0; }
+    return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+function openAdminModal() {
+    document.getElementById("adminModal").style.display = "flex";
+}
+
+function closeAdminModal() {
+    document.getElementById("adminModal").style.display = "none";
+}
+
+function unlockAdmin() {
+    var input = document.getElementById("adminPasswordInput").value;
+    var msg = document.getElementById("adminLockMsg");
+    if (adminHash(input) === ADMIN_CHECK) {
+        document.getElementById("adminModalLock").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+        msg.textContent = "";
+    } else {
+        msg.textContent = "Incorrect password.";
+        document.getElementById("adminPasswordInput").value = "";
+    }
+}
+
+function lockAdmin() {
+    document.getElementById("adminPanel").style.display = "none";
+    document.getElementById("adminModalLock").style.display = "block";
+    document.getElementById("adminPasswordInput").value = "";
+    closeAdminModal();
+}
+
+function adminShowDropdown() {
+    adminFilterDropdown();
+    document.getElementById("adminJobDropdown").style.display = "block";
+}
+
+function adminHideDropdown() {
+    document.getElementById("adminJobDropdown").style.display = "none";
+}
+
+function adminFilterDropdown() {
+    var query = document.getElementById("adminJobSearch").value.toLowerCase().trim();
+    var dd = document.getElementById("adminJobDropdown");
+    dd.innerHTML = "";
+    var names = Object.keys(gameData.taskData);
+    var matches = query ? names.filter(function(n) { return n.toLowerCase().includes(query); }) : names;
+    if (matches.length === 0) {
+        dd.innerHTML = '<div style="padding:5px 8px;color:#666;font-size:11px;">No matches</div>';
+        dd.style.display = "block";
+        return;
+    }
+    matches.forEach(function(name) {
+        var task = gameData.taskData[name];
+        var type = task instanceof Job ? "Job" : "Skill";
+        var el = document.createElement("div");
+        el.style.cssText = "padding:5px 8px;cursor:pointer;font-size:11px;color:#ddd;border-bottom:1px solid #2a2a3e;display:flex;justify-content:space-between;";
+        el.innerHTML = '<span>' + name + '</span><span style="color:#888;font-size:10px;">' + type + ' · lv' + task.level + '</span>';
+        el.onmousedown = function() {
+            adminSelectedJob = name;
+            document.getElementById("adminJobSearch").value = name;
+            document.getElementById("adminJobSelected").textContent = "Selected: " + name + " (current level: " + task.level + ")";
+            adminHideDropdown();
+        };
+        el.onmouseover = function() { el.style.background = "#2a2a4e"; };
+        el.onmouseout  = function() { el.style.background = ""; };
+        dd.appendChild(el);
+    });
+    dd.style.display = "block";
+}
+
+function adminMsg(text, color) {
+    var el = document.getElementById("adminMsg");
+    el.textContent = text;
+    el.style.color = color || "#44cc44";
+    clearTimeout(el._t);
+    el._t = setTimeout(function() { el.textContent = ""; }, 3000);
+}
+
+function adminSetCoins() {
+    var v = parseFloat(document.getElementById("adminCoins").value);
+    if (isNaN(v)) { adminMsg("Invalid amount.", "red"); return; }
+    gameData.coins = v;
+    adminMsg("Coins set to " + format(v) + ".");
+}
+
+function adminSetEvil() {
+    var v = parseFloat(document.getElementById("adminEvil").value);
+    if (isNaN(v)) { adminMsg("Invalid amount.", "red"); return; }
+    gameData.evil = v;
+    adminMsg("Evil set to " + format(v) + ".");
+}
+
+function adminSetAge() {
+    var v = parseInt(document.getElementById("adminAge").value);
+    if (isNaN(v) || v < 14) { adminMsg("Invalid age (min 14).", "red"); return; }
+    gameData.days = v * 365;
+    adminMsg("Age set to " + v + " years.");
+}
+
+function adminSetJobLevel() {
+    var name = adminSelectedJob || document.getElementById("adminJobSearch").value.trim();
+    var lvl  = parseInt(document.getElementById("adminJobLevel").value);
+    var task = gameData.taskData[name];
+    if (!task) { adminMsg("Not found: " + name, "red"); return; }
+    if (isNaN(lvl) || lvl < 0) { adminMsg("Invalid level.", "red"); return; }
+    task.level = lvl;
+    task.xp = 0;
+    document.getElementById("adminJobSelected").textContent = "Selected: " + name + " (current level: " + lvl + ")";
+    adminMsg(name + " → level " + lvl + ".");
+}
+
+function adminMaxAll() {
+    for (var key in gameData.taskData) {
+        gameData.taskData[key].level = 999;
+        gameData.taskData[key].maxLevel = Math.max(gameData.taskData[key].maxLevel, 999);
+        gameData.taskData[key].xp = 0;
+    }
+    adminMsg("All jobs and skills maxed to level 999.");
+}
+
+</script>
+</body>
+</html>
